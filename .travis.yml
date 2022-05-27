@@ -4,7 +4,7 @@
   addons:
     homebrew:
       packages:
-      - qt
+      - qt@5
       update: true
   script:
     - mkdir ./build2
