@@ -38,6 +38,7 @@ public:
 
     bool isNone() const override;
     bool isRange() const override;
+    bool isList() const override;
     SelectionState state() const override;
 
     bool canCopy() const override;
@@ -49,9 +50,8 @@ public:
     std::vector<Note*> notes(NoteFilter filter) const override;
 
     RectF canvasBoundingRect() const override;
-
+    std::vector<const Part*> selectedParts() const override;
     INotationSelectionRangePtr range() const override;
-
     EngravingItem* lastElementHit() const override;
 
     void onElementHit(EngravingItem*);
