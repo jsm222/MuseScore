@@ -1,13 +1,12 @@
-  - name: MacOS
-    os: osx
-    osx_image: xcode11.3
-    compiler: clang
-    addons:
-      homebrew:
-        packages:
-        - qt
-        update: true
-    script:
-        - mkdir ./build2
-        - cd ./build2
-        - cmake -P ../build.cmake -DCMAKE_BUILD_TYPE=Release
+  os: osx
+  osx_image: xcode11.3
+  compiler: clang
+  addons:
+    homebrew:
+      packages:
+      - qt
+      update: true
+  script:
+    - mkdir ./build2
+    - cd ./build2
+    - cmake -P ../build.cmake -DCMAKE_BUILD_TYPE=Release
