@@ -303,6 +303,7 @@ void PlaybackController::onSelectionChanged()
             updateMuteStates();
         }
 
+        updateMuteStates();
         return;
     }
 
@@ -427,8 +428,16 @@ msecs_t PlaybackController::playbackEndMsecs() const
 
 InstrumentTrackIdSet PlaybackController::instrumentTrackIdSetForRangePlayback() const
 {
-    std::vector<const Part*> selectedParts = selectionRange()->selectedParts();
-    Fraction startTick = selectionRange()->startTick();
+    Fraction startTick = Fraction::fromTicks(-1);
+    std::vector<const Part*> selectedParts;
+
+    if(!this->selection()->isRange()) {
+
+    selectedParts = selection()->selectedParts();
+    } else if(this->selection()->state()==SelectionState::RANGE){
+    selectedParts = selectionRange()->selectedParts();
+    startTick = selectionRange()->startTick();
+    }
     int startTicks = startTick.ticks();
 
     InstrumentTrackIdSet result;
@@ -906,7 +915,8 @@ void PlaybackController::updateMuteStates()
     INotationPartsPtr notationParts = m_notation->parts();
 
     InstrumentTrackIdSet allowedInstrumentTrackIdSet = instrumentTrackIdSetForRangePlayback();
-    bool isRangePlaybackMode = selection()->isRange() && !allowedInstrumentTrackIdSet.empty();
+    bool isRangePlaybackMode = (selection()->isRange() || selection()->isList()) && !allowedInstrumentTrackIdSet.empty();
+
 
     for (const Part* masterPart : masterPartList) {
         const Part* part = notationParts->part(masterPart->id());
