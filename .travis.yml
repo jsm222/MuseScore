@@ -5,9 +5,9 @@
     - curl -k https://curl.se/ca/cacert.pem -o /tmp/cacert.pem
     - export CURL_CA_BUNDLE=/tmp/cacert.pem
     - brew update
-    - brew install curl
+    - brew install -v curl
     - export HOMEBREW_FORCE_BREWED_CURL=1
-    - brew install qt5 libogg libsndfile libvorbis pkg-config portaudio jack lame
+    - brew install -v qt5 libogg libsndfile libvorbis pkg-config portaudio jack lame
   before_script:
     - brew link qmake
   script:
