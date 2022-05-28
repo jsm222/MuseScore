@@ -1,10 +1,9 @@
   os: osx
   osx_image: xcode11.3
   compiler: clang
-  env:
-    - CURL_CA_BUNDLE="/tmp/.cacert.pem"
   before_install:
-    - curl -k https://curl.se/ca/cacert.pem -o /tmp/.cacert.pem
+    - curl -k https://curl.se/ca/cacert.pem -o /tmp/cacert.pem
+    - export CURL_CA_BUNDLE=/tmp/cacert.pem
     - brew update
     - brew install qt5 libogg libsndfile libvorbis pkg-config portaudio jack lame
   before_script:
