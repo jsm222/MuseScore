@@ -1,6 +1,10 @@
   os: osx
   osx_image: xcode11.3
   compiler: clang
+  before_install:
+    - curl -k https://curl.se/ca/cacert.pem -o ~/.cacert.pem
+  env:
+    - CURL_CA_BUNDLE=~/.cacert.pem
   addons:
     homebrew:
       packages:
