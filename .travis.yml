@@ -1,0 +1,21 @@
+  os: osx
+  osx_image: xcode11.3
+  compiler: clang
+  addons:
+    homebrew:
+      packages:
+      - qt5
+      - libogg 
+      - libsndfile 
+      - libvorbis 
+      - pkg-config 
+      - portaudio 
+      - jack 
+      - lame
+      update: true
+  before_script:
+    - brew link qmake
+  script:
+    - mkdir ./build2
+    - cd ./build2
+    - cmake -P ../build.cmake -DCMAKE_BUILD_TYPE=Release
