@@ -3,20 +3,10 @@
   compiler: clang
   before_install:
     - curl -k https://curl.se/ca/cacert.pem -o ~/.cacert.pem
+    - brew update
+    - brew install qt5 libogg libsndfile libvorbis pkg-config portaudio jack lame
   env:
     - CURL_CA_BUNDLE=~/.cacert.pem
-  addons:
-    homebrew:
-      packages:
-      - qt5
-      - libogg 
-      - libsndfile 
-      - libvorbis 
-      - pkg-config 
-      - portaudio 
-      - jack 
-      - lame
-      update: true
   before_script:
     - brew link qmake
   script:
