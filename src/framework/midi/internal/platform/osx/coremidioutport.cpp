@@ -215,6 +215,7 @@ mu::Ret CoreMidiOutPort::sendEvent(const Event& e)
 
     OSStatus result;
     MIDITimeStamp timeStamp = AudioGetCurrentHostTime();
+#if 0
     if (__builtin_available(macOS 11.0, *)) {
         MIDIEventList eventList;
         MIDIEventPacket* packet = MIDIEventListInit(&eventList, kMIDIProtocol_2_0);
@@ -223,6 +224,7 @@ mu::Ret CoreMidiOutPort::sendEvent(const Event& e)
 
         result = MIDISendEventList(m_core->outputPort, m_core->destinationId, &eventList);
     } else {
+#endif
         MIDIPacketList packetList;
         MIDIPacket* packet = MIDIPacketListInit(&packetList);
 
@@ -238,8 +240,9 @@ mu::Ret CoreMidiOutPort::sendEvent(const Event& e)
         }
 
         result = MIDISend(m_core->outputPort, m_core->destinationId, &packetList);
+#if 0
     }
-
+#endif
     if (result != noErr) {
         LOGE() << "midi send error: " << result;
         return make_ret(Err::MidiSendError, "failed send message. Core error: " + std::to_string(result));
