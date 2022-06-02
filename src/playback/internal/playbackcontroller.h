@@ -39,30 +39,39 @@
 #include "audio/iaudiooutput.h"
 #include "audio/iplayback.h"
 #include "audio/audiotypes.h"
-
+#include <QMediaPlayer>
 #include "../iplaybackcontroller.h"
 #include "../iplaybackconfiguration.h"
 
+#include <QByteArray>
+#include <QFile>
+#include <QTimer>
+#include <QProgressBar>
+#include <QFileDialog>
 namespace mu::playback {
-class PlaybackController : public IPlaybackController, public actions::Actionable, public async::Asyncable
+class PlaybackController : public QObject, public IPlaybackController, public actions::Actionable, public async::Asyncable
 {
+        Q_OBJECT
     INJECT(playback, actions::IActionsDispatcher, dispatcher)
     INJECT(playback, context::IGlobalContext, globalContext)
     INJECT(playback, IPlaybackConfiguration, configuration)
     INJECT(playback, notation::INotationConfiguration, notationConfiguration)
     INJECT_STATIC(playback, audio::IPlayback, playback)
 
-public:
-    void init();
 
+public:
+
+    void init();
     bool isPlayAllowed() const override;
+    QMediaPlayer* m_player;
+
     async::Notification isPlayAllowedChanged() const override;
 
     bool isPlaying() const override;
     async::Notification isPlayingChanged() const override;
 
     void reset() override;
-
+    void loadMedia();
     void seek(const midi::tick_t tick) override;
     void seek(const audio::msecs_t msecs) override;
 
@@ -88,14 +97,16 @@ public:
 
     notation::MeasureBeat currentBeat() const override;
     audio::msecs_t beatToMilliseconds(int measureIndex, int beatIndex) const override;
-
+public slots:
+       void statusChange(QMediaPlayer::MediaStatus status);
 private:
     notation::INotationPlaybackPtr notationPlayback() const;
     notation::INotationPartsPtr masterNotationParts() const;
     notation::INotationSelectionPtr selection() const;
     notation::INotationSelectionRangePtr selectionRange() const;
     notation::INotationInteractionPtr interaction() const;
-
+    QProgressBar *progressBar;
+    QByteArray *m_ba;
     void updateCurrentTempo();
 
     int currentTick() const;

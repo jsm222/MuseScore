@@ -37,6 +37,7 @@ public:
 
     virtual bool isNone() const = 0;
     virtual bool isRange() const = 0;
+    virtual bool isList() const = 0;
     virtual SelectionState state() const = 0;
 
     virtual bool canCopy() const = 0;
@@ -50,7 +51,7 @@ public:
     virtual RectF canvasBoundingRect() const = 0;
 
     virtual INotationSelectionRangePtr range() const = 0;
-
+    virtual std::vector<const Part*> selectedParts() const = 0;
     virtual EngravingItem* lastElementHit() const = 0;
 };
 

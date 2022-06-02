@@ -25,6 +25,7 @@ set(_components
     PrintSupport
     OpenGL
     LinguistTools
+    Multimedia
   )
 
 if (NOT OS_IS_WASM)

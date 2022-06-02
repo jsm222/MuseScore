@@ -153,6 +153,7 @@ void CoreMidiInPort::initCore()
     }
 
     QString portName = "MuseScore MIDI input port";
+#if 0
     if (__builtin_available(macOS 11.0, *)) {
         MIDIReceiveBlock receiveBlock = ^ (const MIDIEventList* eventList, void* /*srcConnRefCon*/) {
             const MIDIEventPacket* packet = eventList->packet;
@@ -174,6 +175,7 @@ void CoreMidiInPort::initCore()
         result
             = MIDIInputPortCreateWithProtocol(m_core->client, portName.toCFString(), kMIDIProtocol_2_0, &m_core->inputPort, receiveBlock);
     } else {
+#endif
         MIDIReadBlock readBlock = ^ (const MIDIPacketList* packetList, void* /*srcConnRefCon*/)
         {
             const MIDIPacket* packet = packetList->packet;
@@ -195,8 +197,9 @@ void CoreMidiInPort::initCore()
         };
 
         result = MIDIInputPortCreateWithBlock(m_core->client, portName.toCFString(), &m_core->inputPort, readBlock);
-    }
-
+#if 0
+   }
+#endif
     IF_ASSERT_FAILED(result == noErr) {
         LOGE() << "failed create midi input port";
     }

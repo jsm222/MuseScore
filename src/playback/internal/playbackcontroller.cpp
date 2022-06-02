@@ -35,6 +35,7 @@ using namespace mu::audio;
 using namespace mu::actions;
 using namespace mu::engraving;
 
+static const ActionCode LOADMEDIA_CODE("loadmedia");
 static const ActionCode PLAY_CODE("play");
 static const ActionCode STOP_CODE("stop");
 static const ActionCode REWIND_CODE("rewind");
@@ -49,6 +50,7 @@ static const ActionCode REPEAT_CODE("repeat");
 
 void PlaybackController::init()
 {
+    dispatcher()->reg(this, LOADMEDIA_CODE, this, &PlaybackController::loadMedia);
     dispatcher()->reg(this, PLAY_CODE, this, &PlaybackController::togglePlay);
     dispatcher()->reg(this, STOP_CODE, this, &PlaybackController::pause);
     dispatcher()->reg(this, REWIND_CODE, this, &PlaybackController::rewind);
@@ -83,10 +85,40 @@ void PlaybackController::init()
     m_playbackPositionChanged.onNotify(this, [this]() {
         updateCurrentTempo();
     });
-
+    m_player = new QMediaPlayer;
+    progressBar = new QProgressBar();
+    connect(m_player, &QMediaPlayer::durationChanged, this, [&](qint64 duration) {
+        LOGE() << "Media duration = " << duration;
+   
+        m_player->setPosition(0);
+	progressBar->hide();
+    });
     m_needRewindBeforePlay = true;
 }
+void PlaybackController::loadMedia() {
 
+    QString fileName=QFileDialog::getOpenFileName(nullptr,"Select:","","(*.mp3 *.wav *.ogg. *.flac)");
+
+    progressBar->setMinimum(0);
+    progressBar->setMaximum(0);
+    progressBar->show();
+    connect(m_player, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)), this, SLOT(statusChange(QMediaPlayer::MediaStatus)));
+    m_player->setMedia(QMediaContent(QUrl::fromLocalFile(fileName)));
+}
+void PlaybackController::statusChange(QMediaPlayer::MediaStatus status) {
+    LOGE() << status;
+    if(status ==QMediaPlayer::LoadedMedia) {
+        progressBar->setMaximum(100);
+        progressBar->setValue(100);
+        progressBar->close();
+
+    }
+    if(status ==QMediaPlayer::QMediaPlayer::EndOfMedia) {
+
+        //m_player->stop();
+
+    }
+}
 void PlaybackController::updateCurrentTempo()
 {
     if (!notationPlayback()) {
@@ -120,14 +152,15 @@ Notification PlaybackController::isPlayAllowedChanged() const
 
 bool PlaybackController::isPlaying() const
 {
-    return m_currentPlaybackStatus == PlaybackStatus::Running;
+    LOGE() << (m_currentPlaybackStatus == PlaybackStatus::Running);
+    return (m_currentPlaybackStatus == PlaybackStatus::Running || m_player->state() == QMediaPlayer::PlayingState);  
 }
 
 bool PlaybackController::isPaused() const
 {
+    LOGE() << (m_currentPlaybackStatus == PlaybackStatus::Paused);
     return m_currentPlaybackStatus == PlaybackStatus::Paused;
 }
-
 bool PlaybackController::isLoopVisible() const
 {
     return notationPlayback() ? notationPlayback()->loopBoundaries().val.visible : false;
@@ -146,6 +179,7 @@ Notification PlaybackController::isPlayingChanged() const
 void PlaybackController::reset()
 {
     stop();
+
 }
 
 void PlaybackController::seek(const midi::tick_t tick)
@@ -153,12 +187,25 @@ void PlaybackController::seek(const midi::tick_t tick)
     IF_ASSERT_FAILED(notationPlayback() && playback()) {
         return;
     }
+    if(m_player->state() != QMediaPlayer::StoppedState && m_player->duration() > tickToMsecs(tick)) {
+        m_player->setPosition(tickToMsecs(tick));
+    }
 
     playback()->player()->seek(m_currentSequenceId, tickToMsecs(tick));
 }
 
 void PlaybackController::seek(const audio::msecs_t msecs)
 {
+    LOGE() << msecs;
+    LOGE() << m_player->duration();
+    LOGE() << m_player->state();
+    if(m_player->duration() > msecs) {
+        m_player->setPosition(msecs);
+    }
+
+
+
+
     IF_ASSERT_FAILED(notationPlayback() && playback()) {
         return;
     }
@@ -303,6 +350,7 @@ void PlaybackController::onSelectionChanged()
             updateMuteStates();
         }
 
+        updateMuteStates();
         return;
     }
 
@@ -310,7 +358,7 @@ void PlaybackController::onSelectionChanged()
 
     playback()->player()->resetLoop(m_currentSequenceId);
     playback()->player()->seek(m_currentSequenceId, startMsecs);
-
+    m_player->setPosition(startMsecs);
     updateMuteStates();
 }
 
@@ -321,10 +369,13 @@ void PlaybackController::togglePlay()
         return;
     }
 
+
+
     interaction()->endEditElement();
 
     if (isPlaying()) {
         pause();
+
     } else if (isPaused()) {
         msecs_t endMsecs = playbackEndMsecs();
         msecs_t currentTimeMsecs = tickToMsecs(m_currentTick);
@@ -332,11 +383,14 @@ void PlaybackController::togglePlay()
         if (currentTimeMsecs == endMsecs) {
             msecs_t startMsecs = playbackStartMsecs();
             seek(startMsecs);
+
+
         }
 
         resume();
     } else {
         play();
+
     }
 }
 
@@ -349,16 +403,23 @@ void PlaybackController::play()
     if (m_needRewindBeforePlay) {
         msecs_t startMsecs = playbackStartMsecs();
         seek(startMsecs);
+
+
     } else {
         m_needRewindBeforePlay = true;
     }
 
     playback()->player()->play(m_currentSequenceId);
+
+    m_player->play();
+
+    LOGE() << m_player->position();
     setCurrentPlaybackStatus(PlaybackStatus::Running);
 }
 
 void PlaybackController::rewind(const ActionData& args)
 {
+
     IF_ASSERT_FAILED(playback()) {
         return;
     }
@@ -367,8 +428,9 @@ void PlaybackController::rewind(const ActionData& args)
     msecs_t endMsecs = playbackEndMsecs();
     msecs_t newPosition = !args.empty() ? args.arg<msecs_t>(0) : 0;
     newPosition = std::clamp(newPosition, startMsecs, endMsecs);
-
+    m_player->stop();
     seek(newPosition);
+    m_player->play();
     m_needRewindBeforePlay = false;
 }
 
@@ -377,8 +439,8 @@ void PlaybackController::pause()
     IF_ASSERT_FAILED(playback()) {
         return;
     }
-
     playback()->player()->pause(m_currentSequenceId);
+    m_player->pause();
     setCurrentPlaybackStatus(PlaybackStatus::Paused);
 }
 
@@ -387,15 +449,19 @@ void PlaybackController::stop()
     IF_ASSERT_FAILED(playback()) {
         return;
     }
-
+    m_player->stop();
     playback()->player()->stop(m_currentSequenceId);
     setCurrentPlaybackStatus(PlaybackStatus::Stopped);
 }
 
 void PlaybackController::resume()
 {
+
     IF_ASSERT_FAILED(playback()) {
         return;
+    }
+    if(m_player->duration() / 1000 > playbackPositionInSeconds()) {
+        m_player->play();
     }
 
     playback()->player()->resume(m_currentSequenceId);
@@ -422,13 +488,28 @@ msecs_t PlaybackController::playbackStartMsecs() const
 
 msecs_t PlaybackController::playbackEndMsecs() const
 {
-    return notationPlayback() ? notationPlayback()->totalPlayTime() : 0;
+
+
+    msecs_t endMsecs =  notationPlayback() ? notationPlayback()->totalPlayTime() : 0;
+    if(endMsecs<m_player->duration()) {
+        endMsecs = m_player->duration();
+    }
+
+    return endMsecs;
 }
 
 InstrumentTrackIdSet PlaybackController::instrumentTrackIdSetForRangePlayback() const
 {
-    std::vector<const Part*> selectedParts = selectionRange()->selectedParts();
-    Fraction startTick = selectionRange()->startTick();
+    Fraction startTick = Fraction::fromTicks(-1);
+    std::vector<const Part*> selectedParts;
+
+    if(!this->selection()->isRange()) {
+
+    selectedParts = selection()->selectedParts();
+    } else if(this->selection()->state()==SelectionState::RANGE){
+    selectedParts = selectionRange()->selectedParts();
+    startTick = selectionRange()->startTick();
+    }
     int startTicks = startTick.ticks();
 
     InstrumentTrackIdSet result;
@@ -906,7 +987,8 @@ void PlaybackController::updateMuteStates()
     INotationPartsPtr notationParts = m_notation->parts();
 
     InstrumentTrackIdSet allowedInstrumentTrackIdSet = instrumentTrackIdSetForRangePlayback();
-    bool isRangePlaybackMode = selection()->isRange() && !allowedInstrumentTrackIdSet.empty();
+    bool isRangePlaybackMode = (selection()->isRange() || selection()->isList()) && !allowedInstrumentTrackIdSet.empty();
+
 
     for (const Part* masterPart : masterPartList) {
         const Part* part = notationParts->part(masterPart->id());

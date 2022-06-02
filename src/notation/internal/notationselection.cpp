@@ -47,6 +47,10 @@ bool NotationSelection::isRange() const
     return score()->selection().isRange();
 }
 
+bool NotationSelection::isList() const
+{
+    return score()->selection().isList();
+}
 SelectionState NotationSelection::state() const
 {
     return score()->selection().state();
@@ -85,7 +89,21 @@ std::vector<EngravingItem*> NotationSelection::elements() const
     }
     return els;
 }
+std::vector<const Part*> NotationSelection::selectedParts() const {
+    std::set<const Part*> result_set;
+    if(score()->selection().isList()) {
+        foreach(EngravingItem* e, score()->selection().elements()) {
+            const Staff* staff =score()->staff(e->staffIdx());
 
+            if (staff && staff->part()) {
+                result_set.insert(staff->part());
+            }
+
+        }
+    }
+std::vector<const Part*> result(result_set.begin(), result_set.end());
+return result;
+}
 std::vector<Note*> NotationSelection::notes(NoteFilter filter) const
 {
     switch (filter) {
