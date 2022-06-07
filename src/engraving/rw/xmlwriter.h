@@ -38,81 +38,49 @@
 
 namespace mu::engraving {
 class WriteContext;
-}
-
-namespace mu::engraving {
-class XmlWriter : public mu::XmlStreamWriter
+class XmlWriter : public XmlStreamWriter
 {
 public:
     XmlWriter() = default;
     XmlWriter(mu::io::IODevice* dev);
     ~XmlWriter();
 
-    const std::vector<std::pair<const EngravingObject*, QString> >& elements() const { return _elements; }
+    const std::vector<std::pair<const EngravingObject*, AsciiString> >& elements() const { return _elements; }
     void setRecordElements(bool record) { _recordElements = record; }
 
-    void startObject(const QString& name);
-    void endObject();
+    void startElementRaw(const QString& name);
+    void startElement(const AsciiString& name, const Attributes& attrs = {});
+    void startElement(const EngravingObject* se, const Attributes& attrs = {});
+    void startElement(const AsciiString& name, const EngravingObject* se, const Attributes& attrs = {});
 
-    void startObject(const EngravingObject* se, const QString& attributes = QString());
-    void startObject(const QString& name, const EngravingObject* se, const QString& attributes = QString());
+    void tag(const AsciiString& name, const Attributes& attrs = {});
+    void tag(const AsciiString& name, const Value& body);
+    void tag(const AsciiString& name, const Value& val, const Value& def);
+    void tag(const AsciiString& name, const Attributes& attrs, const Value& body);
+    void tagRaw(const QString& elementWithAttrs, const Value& body = Value());
 
-    void tagE(const QString&);
+    void tagProperty(Pid id, const PropertyValue& data, const PropertyValue& def = PropertyValue());
+    void tagProperty(const AsciiString&, const PropertyValue& data, const PropertyValue& def = PropertyValue());
 
-    void tag(Pid id, const mu::engraving::PropertyValue& data, const mu::engraving::PropertyValue& def = mu::engraving::PropertyValue());
-    void tagProperty(const mu::AsciiString&, const mu::engraving::PropertyValue& data,
-                     const mu::engraving::PropertyValue& def = mu::engraving::PropertyValue());
-    void tagProperty(const mu::AsciiString& name, mu::engraving::P_TYPE type, const mu::engraving::PropertyValue& data);
-
-    void tag(const mu::AsciiString& name, const mu::AsciiString& v);
-    void tag(const mu::AsciiString& name, const QString& v);
-    void tag(const char* name, const QString& v) { tag(mu::AsciiString(name), v); }
-    void tag(const char* name, const QString& v, const QString& d)
-    {
-        if (v == d) {
-            return;
-        }
-        tag(mu::AsciiString(name), v);
-    }
-
-    void tag(const QString& name, const QString& val);
-    void tag(const QString& name, int val);
-
-    void tag(const mu::AsciiString& name, const Fraction& v, const Fraction& def = Fraction());
-    void tag(const char* name, const CustDef& cd);
-
-#define DECLARE_TAG(T) \
-    void tag(const mu::AsciiString& name, T val); \
-    void tag(const char* name, T val) { \
-        tag(mu::AsciiString(name), val); \
-    } \
-    void tag(const mu::AsciiString& name, T val, T def); \
-    void tag(const char* name,  T val, T def) { \
-        tag(mu::AsciiString(name), val, def); \
-    } \
-
-    DECLARE_TAG(bool)
-    DECLARE_TAG(int)
-    DECLARE_TAG(double)
-    DECLARE_TAG(const char*)
-
-    void tag(const mu::AsciiString& name, const mu::PointF& v);
-
-    void comment(const QString&);
+    void tagFraction(const AsciiString& name, const Fraction& v, const Fraction& def = Fraction());
+    void tagPoint(const AsciiString& name, const mu::PointF& v);
 
     void writeXml(const QString&, QString s);
 
-    mu::engraving::WriteContext* context() const;
-    void setContext(mu::engraving::WriteContext* context);
+    void comment(const String& text);
+
+    WriteContext* context() const;
+    void setContext(WriteContext* context);
 
     static QString xmlString(const QString&);
-    static QString xmlString(ushort c);
 
 private:
-    std::vector<std::pair<const EngravingObject*, QString> > _elements;
+    void tagProperty(const AsciiString& name, P_TYPE type, const PropertyValue& data);
+
+    std::vector<std::pair<const EngravingObject*, AsciiString> > _elements;
     bool _recordElements = false;
 
-    mutable mu::engraving::WriteContext* m_context = nullptr;
+    mutable WriteContext* m_context = nullptr;
     mutable bool m_selfContext = false;
 };
 }

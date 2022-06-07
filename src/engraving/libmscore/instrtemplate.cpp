@@ -45,7 +45,7 @@ using namespace mu::engraving;
 
 namespace mu::engraving {
 std::vector<InstrumentGroup*> instrumentGroups;
-std::vector<MidiArticulation> articulation;                 // global articulations
+std::vector<MidiArticulation> midiArticulations;            // global articulations
 std::vector<InstrumentGenre*> instrumentGenres;
 std::vector<InstrumentFamily*> instrumentFamilies;
 std::vector<ScoreOrder> instrumentOrders;
@@ -111,7 +111,7 @@ InstrumentGroup* searchInstrumentGroup(const QString& name)
 
 static MidiArticulation searchArticulation(const QString& name)
 {
-    for (MidiArticulation a : articulation) {
+    for (MidiArticulation a : midiArticulations) {
         if (a.name == name) {
             return a;
         }
@@ -163,7 +163,8 @@ void InstrumentGroup::read(XmlReader& e)
             InstrumentTemplate* t = searchTemplate(sid);
             if (t == 0) {
                 t = new InstrumentTemplate;
-                t->articulation.insert(t->articulation.end(), articulation.begin(), articulation.end());             // init with global articulation
+                // init with global articulation
+                t->midiArticulations.insert(t->midiArticulations.end(), midiArticulations.begin(), midiArticulations.end());
                 t->sequenceOrder = static_cast<int>(instrumentTemplates.size());
                 instrumentTemplates.push_back(t);
             }
@@ -297,7 +298,7 @@ InstrumentTemplate& InstrumentTemplate::operator=(const InstrumentTemplate& temp
 
 void InstrumentTemplate::write(XmlWriter& xml) const
 {
-    xml.startObject(QString("Instrument id=\"%1\"").arg(id));
+    xml.startElement("Instrument",  { { "id", id } });
     longNames.write(xml, "longName");
     shortNames.write(xml, "shortName");
 
@@ -315,33 +316,30 @@ void InstrumentTemplate::write(XmlWriter& xml) const
     }
     for (staff_idx_t i = 0; i < staffCount; ++i) {
         if (clefTypes[i]._concertClef == clefTypes[i]._transposingClef) {
-            QString tag = TConv::toXml(clefTypes[i]._concertClef);
             if (i) {
-                xml.tag(QString("clef staff=\"%1\"").arg(i + 1), tag);
+                xml.tag("clef", { { "staff", i + 1 } }, TConv::toXml(clefTypes[i]._concertClef));
             } else {
-                xml.tag("clef", tag);
+                xml.tag("clef", TConv::toXml(clefTypes[i]._concertClef));
             }
         } else {
-            QString tag1 = TConv::toXml(clefTypes[i]._concertClef);
-            QString tag2 = TConv::toXml(clefTypes[i]._transposingClef);
             if (i) {
-                xml.tag(QString("concertClef staff=\"%1\"").arg(i + 1), tag1);
-                xml.tag(QString("transposingClef staff=\"%1\"").arg(i + 1), tag2);
+                xml.tag("concertClef", { { "staff", i + 1 } }, TConv::toXml(clefTypes[i]._concertClef));
+                xml.tag("transposingClef", { { "staff", i + 1 } }, TConv::toXml(clefTypes[i]._transposingClef));
             } else {
-                xml.tag("concertClef", tag1);
-                xml.tag("transposingClef", tag2);
+                xml.tag("concertClef", TConv::toXml(clefTypes[i]._concertClef));
+                xml.tag("transposingClef", TConv::toXml(clefTypes[i]._transposingClef));
             }
         }
         if (staffLines[i] != 5) {
             if (i) {
-                xml.tag(QString("stafflines staff=\"%1\"").arg(i + 1), staffLines[i]);
+                xml.tag("stafflines", { { "staff", i + 1 } }, staffLines[i]);
             } else {
                 xml.tag("stafflines", staffLines[i]);
             }
         }
         if (smallStaff[i]) {
             if (i) {
-                xml.tag(QString("smallStaff staff=\"%1\"").arg(i + 1), smallStaff[i]);
+                xml.tag("smallStaff", { { "staff", i + 1 } }, smallStaff[i]);
             } else {
                 xml.tag("smallStaff", smallStaff[i]);
             }
@@ -349,21 +347,21 @@ void InstrumentTemplate::write(XmlWriter& xml) const
 
         if (bracket[i] != BracketType::NO_BRACKET) {
             if (i) {
-                xml.tag(QString("bracket staff=\"%1\"").arg(i + 1), int(bracket[i]));
+                xml.tag("bracket", { { "staff", i + 1 } }, int(bracket[i]));
             } else {
                 xml.tag("bracket", int(bracket[i]));
             }
         }
         if (bracketSpan[i] != 0) {
             if (i) {
-                xml.tag(QString("bracketSpan staff=\"%1\"").arg(i + 1), bracketSpan[i]);
+                xml.tag("bracketSpan", { { "staff", i + 1 } }, bracketSpan[i]);
             } else {
                 xml.tag("bracketSpan", bracketSpan[i]);
             }
         }
         if (barlineSpan[i]) {
             if (i) {
-                xml.tag(QString("barlineSpan staff=\"%1\"").arg(i + 1), barlineSpan[i]);
+                xml.tag("barlineSpan", { { "staff", i + 1 } }, barlineSpan[i]);
             } else {
                 xml.tag("barlineSpan", barlineSpan[i]);
             }
@@ -398,9 +396,9 @@ void InstrumentTemplate::write(XmlWriter& xml) const
     for (const InstrChannel& a : channel) {
         a.write(xml, nullptr);
     }
-    for (const MidiArticulation& ma : articulation) {
+    for (const MidiArticulation& ma : midiArticulations) {
         bool isGlobal = false;
-        for (const MidiArticulation& ga : mu::engraving::articulation) {
+        for (const MidiArticulation& ga : mu::engraving::midiArticulations) {
             if (ma == ga) {
                 isGlobal = true;
                 break;
@@ -413,7 +411,7 @@ void InstrumentTemplate::write(XmlWriter& xml) const
     if (family) {
         xml.tag("family", family->id);
     }
-    xml.endObject();
+    xml.endElement();
 }
 
 //---------------------------------------------------------
@@ -423,14 +421,14 @@ void InstrumentTemplate::write(XmlWriter& xml) const
 
 void InstrumentTemplate::write1(XmlWriter& xml) const
 {
-    xml.startObject(QString("Instrument id=\"%1\"").arg(id));
+    xml.startElement("Instrument", { { "id", id } });
     longNames.write(xml, "longName");
     shortNames.write(xml, "shortName");
     if (longNames.size() > 1) {
         xml.tag("trackName", trackName);
     }
     xml.tag("description", description);
-    xml.endObject();
+    xml.endElement();
 }
 
 //---------------------------------------------------------
@@ -549,16 +547,16 @@ void InstrumentTemplate::read(XmlReader& e)
         } else if (tag == "Articulation") {
             MidiArticulation a;
             a.read(e);
-            size_t n = articulation.size();
+            size_t n = midiArticulations.size();
             size_t i;
             for (i = 0; i < n; ++i) {
-                if (articulation[i].name == a.name) {
-                    articulation[i] = a;
+                if (midiArticulations[i].name == a.name) {
+                    midiArticulations[i] = a;
                     break;
                 }
             }
             if (i == n) {
-                articulation.push_back(a);
+                midiArticulations.push_back(a);
             }
         } else if (tag == "stafftype") {
             int staffIdx = readStaffIdx(e);
@@ -660,7 +658,7 @@ void clearInstrumentTemplates()
     instrumentGenres.clear();
     qDeleteAll(instrumentFamilies);
     instrumentFamilies.clear();
-    articulation.clear();
+    midiArticulations.clear();
     instrumentOrders.clear();
 }
 
@@ -694,7 +692,7 @@ bool loadInstrumentTemplates(const QString& instrTemplates)
                     QString name(e.attribute("name"));
                     MidiArticulation a = searchArticulation(name);
                     a.read(e);
-                    articulation.push_back(a);
+                    midiArticulations.push_back(a);
                 } else if (tag == "Genre") {
                     QString idGenre(e.attribute("id"));
                     InstrumentGenre* genre = searchInstrumentGenre(idGenre);
@@ -887,9 +885,9 @@ void InstrumentTemplate::linkGenre(const QString& genre)
 
 void InstrumentGenre::write(XmlWriter& xml) const
 {
-    xml.startObject(QString("Genre id=\"%1\"").arg(id));
+    xml.startElement("Genre", { { "id", id } });
     xml.tag("name", name);
-    xml.endObject();
+    xml.endElement();
 }
 
 void InstrumentGenre::write1(XmlWriter& xml) const
@@ -912,9 +910,9 @@ void InstrumentGenre::read(XmlReader& e)
 
 void InstrumentFamily::write(XmlWriter& xml) const
 {
-    xml.startObject(QString("Family id=\"%1\"").arg(id));
+    xml.startElement("Family", { { "id", id } });
     xml.tag("name", name);
-    xml.endObject();
+    xml.endElement();
 }
 
 void InstrumentFamily::write1(XmlWriter& xml) const

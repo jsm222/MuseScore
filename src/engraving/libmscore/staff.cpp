@@ -764,7 +764,7 @@ Fraction Staff::currentKeyTick(const Fraction& tick) const
 
 void Staff::write(XmlWriter& xml) const
 {
-    xml.startObject(this, QString("id=\"%1\"").arg(idx() + 1));
+    xml.startElement(this, { { "id", idx() + 1 } });
 
     if (links()) {
         Score* s = masterScore();
@@ -822,8 +822,7 @@ void Staff::write(XmlWriter& xml) const
         size_t b = i->bracketSpan();
         size_t c = i->column();
         if (a != BracketType::NO_BRACKET || b > 0) {
-            xml.tagE(QString("bracket type=\"%1\" span=\"%2\" col=\"%3\"").arg(static_cast<int>(a)).arg(static_cast<int>(b)).arg(static_cast
-                                                                                                                                 <int>(c)));
+            xml.tag("bracket", { { "type", static_cast<int>(a) }, { "span", b }, { "col", c } });
         }
     }
 
@@ -836,7 +835,7 @@ void Staff::write(XmlWriter& xml) const
     writeProperty(xml, Pid::PLAYBACK_VOICE2);
     writeProperty(xml, Pid::PLAYBACK_VOICE3);
     writeProperty(xml, Pid::PLAYBACK_VOICE4);
-    xml.endObject();
+    xml.endElement();
 }
 
 //---------------------------------------------------------
@@ -1000,9 +999,9 @@ SwingParameters Staff::swing(const Fraction& tick) const
     DurationType unit = TConv::fromXml(ba.constData(), DurationType::V_INVALID);
     int swingRatio = score()->styleI(Sid::swingRatio);
     if (unit == DurationType::V_EIGHTH) {
-        swingUnit = Constant::division / 2;
+        swingUnit = Constants::division / 2;
     } else if (unit == DurationType::V_16TH) {
-        swingUnit = Constant::division / 4;
+        swingUnit = Constants::division / 4;
     } else if (unit == DurationType::V_ZERO) {
         swingUnit = 0;
     }
@@ -1504,7 +1503,7 @@ std::list<Staff*> Staff::staffList() const
 
 Staff* Staff::primaryStaff() const
 {
-    const mu::engraving::LinkedObjects* linkedElements = links();
+    const LinkedObjects* linkedElements = links();
     if (!linkedElements) {
         return nullptr;
     }

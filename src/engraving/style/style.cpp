@@ -44,7 +44,7 @@ const PropertyValue& MStyle::value(Sid idx) const
         return dummy;
     }
 
-    const mu::engraving::PropertyValue& val = m_values[size_t(idx)];
+    const PropertyValue& val = m_values[size_t(idx)];
     if (val.isValid()) {
         return val;
     }
@@ -151,11 +151,11 @@ bool MStyle::readProperties(XmlReader& e)
                 set(idx, c);
                 e.readElementText();
             } else if (P_TYPE::PLACEMENT_V == type) {
-                set(idx, mu::engraving::PlacementV(e.readElementText().toInt()));
+                set(idx, PlacementV(e.readElementText().toInt()));
             } else if (P_TYPE::PLACEMENT_H == type) {
-                set(idx, mu::engraving::PlacementH(e.readElementText().toInt()));
+                set(idx, PlacementH(e.readElementText().toInt()));
             } else if (P_TYPE::HOOK_TYPE == type) {
-                set(idx, mu::engraving::HookType(e.readElementText().toInt()));
+                set(idx, HookType(e.readElementText().toInt()));
             } else {
                 ASSERT_X("unhandled type " + QString::number(int(type)));
             }
@@ -324,15 +324,15 @@ bool MStyle::write(IODevice* device)
 {
     XmlWriter xml(device);
     xml.startDocument();
-    xml.startObject("museScore version=\"" MSC_VERSION "\"");
+    xml.startElement("museScore", { { "version", MSC_VERSION } });
     save(xml, false);
-    xml.endObject();
+    xml.endElement();
     return true;
 }
 
 void MStyle::save(XmlWriter& xml, bool optimize)
 {
-    xml.startObject("Style");
+    xml.startElement("Style");
 
     for (const StyleDef::StyleValue& st : StyleDef::styleValues) {
         Sid idx = st.styleIdx();
@@ -365,7 +365,7 @@ void MStyle::save(XmlWriter& xml, bool optimize)
     }
 
     xml.tag("Spatium", value(Sid::spatium).toReal() / DPMM);
-    xml.endObject();
+    xml.endElement();
 }
 
 // ====================================================

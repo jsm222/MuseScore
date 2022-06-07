@@ -342,7 +342,7 @@ void MsScWriter::note(const QString pitch, const QVector<Bww::BeamType> beamList
     }
     StepAlterOct sao = stepAlterOctMap.value(pitch);
 
-    int ticks = 4 * mu::engraving::Constant::division / type.toInt();
+    int ticks = 4 * mu::engraving::Constants::division / type.toInt();
     if (dots) {
         ticks = 3 * ticks / 2;
     }
@@ -566,7 +566,6 @@ Score::FileError importBww(MasterScore* score, const QString& path)
     p.parse();
 
     score->setSaved(false);
-    score->setNewlyCreated(true);
     score->connectTies();
     LOGD("Score::importBww() done");
     return Score::FileError::FILE_NO_ERROR;        // OK

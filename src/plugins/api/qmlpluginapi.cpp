@@ -134,7 +134,8 @@ Score* PluginAPI::readScore(const QString& name, bool noninteractive)
     mu::engraving::MasterScore* score = msc()->openScore(name, !noninteractive);
     if (score) {
         if (noninteractive) {
-            score->setNewlyCreated(false);
+            // TODO
+            //score->setNewlyCreated(false);
         }
     }
     return wrap<Score>(score, Ownership::SCORE);
@@ -310,6 +311,11 @@ MsProcess* PluginAPI::newQProcess()
 FractionWrapper* PluginAPI::fraction(int num, int den) const
 {
     return wrap(mu::engraving::Fraction(num, den));
+}
+
+void PluginAPI::quit()
+{
+    emit closeRequested();
 }
 
 //---------------------------------------------------------

@@ -109,7 +109,7 @@ enum class ElementType {
     OTTAVA_SEGMENT,
     TRILL_SEGMENT,
     LET_RING_SEGMENT,
-    TEMPO_RANGED_CHANGE_SEGMENT,
+    GRADUAL_TEMPO_CHANGE_SEGMENT,
     VIBRATO_SEGMENT,
     PALM_MUTE_SEGMENT,
     WHAMMY_BAR_SEGMENT,
@@ -139,7 +139,7 @@ enum class ElementType {
     PEDAL,
     TRILL,
     LET_RING,
-    TEMPO_RANGED_CHANGE,
+    GRADUAL_TEMPO_CHANGE,
     VIBRATO,
     PALM_MUTE,
     WHAMMY_BAR,
@@ -557,7 +557,7 @@ Q_ENUM_NS(PlayEventType);
 Q_ENUM_NS(AccidentalType);
 Q_ENUM_NS(HarmonyType);
 #endif
-} // namespace Ms
+} // namespace mu::engraving
 
 Q_DECLARE_METATYPE(mu::engraving::NoteType);
 

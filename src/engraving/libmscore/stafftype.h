@@ -185,7 +185,7 @@ static const int STAFF_GROUP_NAME_MAX_LENGTH   = 32;
 
 class StaffType
 {
-    INJECT_STATIC(engraving, mu::engraving::IEngravingConfiguration, engravingConfiguration)
+    INJECT_STATIC(engraving, IEngravingConfiguration, engravingConfiguration)
 
     friend class TabDurationSymbol;
 
@@ -469,5 +469,5 @@ public:
     bool isRepeat() const { return _repeat; }
     void setRepeat(bool val) { _repeat = val; }
 };
-}     // namespace Ms
+} // namespace mu::engraving
 #endif

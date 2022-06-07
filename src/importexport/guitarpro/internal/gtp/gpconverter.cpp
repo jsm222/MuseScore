@@ -40,7 +40,7 @@
 #include "libmscore/staff.h"
 #include "types/symid.h"
 #include "libmscore/tempotext.h"
-#include "libmscore/tempochangeranged.h"
+#include "libmscore/gradualtempochange.h"
 #include "libmscore/tie.h"
 #include "libmscore/timesig.h"
 #include "libmscore/tremolo.h"
@@ -185,6 +185,38 @@ void GPConverter::convertGP()
             pChannel->setProgram(0);
         }
     }
+}
+
+void GPConverter::fillTuplet()
+{
+    if (m_nextTupletInfo.elements.empty() || !m_nextTupletInfo.tuplet) {
+        LOGE() << "not able to add elements to tuplet";
+        return;
+    }
+
+    Tuplet* tuplet = m_nextTupletInfo.tuplet;
+    ChordRest* firstCr = m_nextTupletInfo.elements.front();
+    tuplet->setTrack(firstCr->track());
+    tuplet->setParent(firstCr->measure());
+    tuplet->setTick(firstCr->tick());
+    tuplet->setBaseLen(Fraction(1, m_nextTupletInfo.lowestBase));
+    tuplet->setTicks(m_nextTupletInfo.duration);
+    setupTupletStyle(tuplet);
+
+    for (ChordRest* elem : m_nextTupletInfo.elements) {
+        tuplet->add(elem);
+    }
+
+    /// TODO: solve correctly within libmscore
+    /// avoiding brackets on single note
+    if (tuplet->elements().size() == 1) {
+        tuplet->setBracketType(TupletBracketType::SHOW_NO_BRACKET);
+    }
+
+    m_nextTupletInfo.elements.clear();
+    m_nextTupletInfo.tuplet = nullptr;
+    m_nextTupletInfo.duration = Fraction();
+    m_nextTupletInfo.lowestBase = NextTupletInfo::LOWEST_BASE;
 }
 
 void GPConverter::convert(const std::vector<std::unique_ptr<GPMasterBar> >& masterBars)
@@ -492,12 +524,14 @@ void GPConverter::addTimeSig(const GPMasterBar* mB, Measure* measure)
                 Fraction fr = { 0, 1 };
                 int capo = staff->capo(fr);
 
-                StaffText* st = Factory::createStaffText(s);
-                st->setTrack(curTrack);
-                QString capoText = QString("Capo fret %1").arg(capo);
-                st->setPlainText(mu::qtrc("iex_guitarpro", capoText.toStdString().c_str()));
-                s->add(st);
-                m_hasCapo[curTrack] = true;
+                if (capo != 0) {
+                    StaffText* st = Factory::createStaffText(s);
+                    st->setTrack(curTrack);
+                    QString capoText = QString("Capo fret %1").arg(capo);
+                    st->setPlainText(mu::qtrc("iex_guitarpro", capoText.toStdString().c_str()));
+                    s->add(st);
+                    m_hasCapo[curTrack] = true;
+                }
             }
         }
     }
@@ -865,6 +899,10 @@ void GPConverter::collectFermatas(const GPMasterBar* mB, Measure* measure)
 
 void GPConverter::fillUncompletedMeasure(const Context& ctx)
 {
+    if (m_nextTupletInfo.tuplet) {
+        fillTuplet();
+    }
+
     Measure* lastMeasure = _score->lastMeasure();
     int tickOffset = lastMeasure->ticks().ticks() + lastMeasure->tick().ticks() - ctx.curTick.ticks();
     if (tickOffset > 0) {
@@ -1017,7 +1055,7 @@ void GPConverter::addFermatas()
     for (const auto& fr : _fermatas) {
         const auto& measure = fr.first;
         const auto& gpFermata = fr.second;
-        Fraction tick = Fraction::fromTicks(mu::engraving::Constant::division * gpFermata.offsetNum / gpFermata.offsetDenom);
+        Fraction tick = Fraction::fromTicks(mu::engraving::Constants::division * gpFermata.offsetNum / gpFermata.offsetDenom);
         // bellow how gtp fermata timeStretch converting to MU timeStretch
         float convertingLength = 1.5f - gpFermata.length * 0.5f + gpFermata.length * gpFermata.length * 3;
         Segment* seg = measure->getSegmentR(SegmentType::ChordRest, tick);
@@ -1056,7 +1094,7 @@ void GPConverter::addTempoMap()
     };
 
     int measureIdx = 0;
-    TempoChangeRanged* _lastTempoChangeRanged = nullptr;
+    GradualTempoChange* _lastGradualTempoChange = nullptr;
     int previousTempo = -1;
 
     for (auto m = _score->firstMeasure(); m; m = m->nextMeasure()) {
@@ -1064,7 +1102,7 @@ void GPConverter::addTempoMap()
         measureIdx++;
         for (auto tempIt = range.first; tempIt != range.second; tempIt++) {
             Fraction tick = m->tick() + Fraction::fromTicks(
-                tempIt->second.position * Constant::division * 4 * m->ticks().numerator() / m->ticks().denominator());
+                tempIt->second.position * Constants::division * 4 * m->ticks().numerator() / m->ticks().denominator());
             Segment* segment = m->getSegment(SegmentType::ChordRest, tick);
             int realTemp = realTempo(tempIt->second);
             TempoText* tt = Factory::createTempoText(segment);
@@ -1074,25 +1112,25 @@ void GPConverter::addTempoMap()
             segment->add(tt);
             _score->setTempo(tick, tt->tempo());
 
-            if (_lastTempoChangeRanged) {
-                _lastTempoChangeRanged->setTick2(tick);
+            if (_lastGradualTempoChange) {
+                _lastGradualTempoChange->setTick2(tick);
                 if (realTemp > previousTempo) {
-                    _lastTempoChangeRanged->setTempoChangeType(TempoTechniqueType::Accelerando);
-                    _lastTempoChangeRanged->setBeginText("accel");
+                    _lastGradualTempoChange->setTempoChangeType(GradualTempoChangeType::Accelerando);
+                    _lastGradualTempoChange->setBeginText("accel");
                 } else {
-                    _lastTempoChangeRanged->setTempoChangeType(TempoTechniqueType::Rallentando);
-                    _lastTempoChangeRanged->setBeginText("rall");
+                    _lastGradualTempoChange->setTempoChangeType(GradualTempoChangeType::Rallentando);
+                    _lastGradualTempoChange->setBeginText("rall");
                 }
 
-                _score->addElement(_lastTempoChangeRanged);
-                _lastTempoChangeRanged = nullptr;
+                _score->addElement(_lastGradualTempoChange);
+                _lastGradualTempoChange = nullptr;
             }
 
             if (tempIt->second.linear) {
-                TempoChangeRanged* tempoChangeRanged = Factory::createTempoChangeRanged(segment);
-                tempoChangeRanged->setTick(tick);
-                tempoChangeRanged->setTrack(0);
-                _lastTempoChangeRanged = tempoChangeRanged;
+                GradualTempoChange* tempoChange = Factory::createGradualTempoChange(segment);
+                tempoChange->setTick(tick);
+                tempoChange->setTrack(0);
+                _lastGradualTempoChange = tempoChange;
             }
 
             previousTempo = realTemp;
@@ -2084,7 +2122,7 @@ void GPConverter::setupTupletStyle(Tuplet* tuplet)
     }
     case 3:
     case 4: {
-        real = (tuplet->ratio().denominator() == 2);
+        real = ((tuplet->ratio().denominator() == 2) || (tuplet->ratio().denominator() == 6));
         break;
     }
     case 5:
@@ -2108,40 +2146,41 @@ void GPConverter::setupTupletStyle(Tuplet* tuplet)
     }
 }
 
+bool GPConverter::tupletParamsChanged(const GPBeat* beat, const ChordRest* cr)
+{
+    return beat->tuplet().num == -1
+           || Fraction(beat->tuplet().num, beat->tuplet().denom) != m_nextTupletInfo.ratio
+           || cr->track() != m_nextTupletInfo.track
+           || cr->measure() != m_nextTupletInfo.measure
+           || (m_nextTupletInfo.elements.size() > 1
+               && m_nextTupletInfo.duration == Fraction(m_nextTupletInfo.ratio.denominator(), m_nextTupletInfo.lowestBase));
+}
+
 void GPConverter::addTuplet(const GPBeat* beat, ChordRest* cr)
 {
+    Fraction currentTupletType = Fraction(beat->tuplet().num, beat->tuplet().denom);
+
+    if (m_nextTupletInfo.tuplet && tupletParamsChanged(beat, cr)) {
+        fillTuplet();
+    }
+
     if (beat->tuplet().num == -1) {
-        _lastTuplet = nullptr;
         return;
     }
 
-    if (_lastTuplet) {
-        //!NOTE if new measure create new tuplet
-        //! if new track create new tuplet
-        //! if tuplet is full create new tuplet
-        if (_lastTuplet->elements().back()->measure() != cr->measure()) {
-            _lastTuplet = nullptr;
-        } else if (_lastTuplet->track() != cr->track()) {
-            _lastTuplet = nullptr;
-        } else if (_lastTuplet->elementsDuration()
-                   == _lastTuplet->baseLen().fraction() * _lastTuplet->ratio().numerator()) {
-            _lastTuplet = nullptr;
-        }
+    m_nextTupletInfo.lowestBase = std::min(m_nextTupletInfo.lowestBase, cr->ticks().denominator());
+
+    if (!m_nextTupletInfo.tuplet) {
+        m_nextTupletInfo.tuplet  = Factory::createTuplet(_score->dummy()->measure());
+        m_nextTupletInfo.tuplet->setRatio(currentTupletType);
+        m_nextTupletInfo.ratio = currentTupletType;
+        m_nextTupletInfo.measure = cr->measure();
+        m_nextTupletInfo.track = cr->track();
     }
 
-    if (!_lastTuplet) {
-        _lastTuplet = Factory::createTuplet(_score->dummy()->measure());
-        _lastTuplet->setTrack(cr->track());
-        _lastTuplet->setParent(cr->measure());
-        _lastTuplet->setTick(cr->tick());
-        _lastTuplet->setBaseLen(cr->actualDurationType());
-        _lastTuplet->setRatio(Fraction(beat->tuplet().num, beat->tuplet().denom));
-        _lastTuplet->setTicks(cr->actualDurationType().ticks() * beat->tuplet().denom);
-    }
-
-    setupTupletStyle(_lastTuplet);
-    cr->setTuplet(_lastTuplet);
-    _lastTuplet->add(cr);
+    m_nextTupletInfo.elements.push_back(cr);
+    cr->setTuplet(m_nextTupletInfo.tuplet);
+    m_nextTupletInfo.duration += cr->actualTicks();
 }
 
 void GPConverter::addVibratoByType(const Note* note, Vibrato::Type type)

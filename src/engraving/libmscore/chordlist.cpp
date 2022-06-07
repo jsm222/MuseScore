@@ -435,26 +435,26 @@ void ChordToken::read(XmlReader& e)
 
 void ChordToken::write(XmlWriter& xml) const
 {
-    QString t = "token";
+    XmlWriter::Attributes attrs;
     switch (tokenClass) {
     case ChordTokenClass::QUALITY:
-        t += " class=\"quality\"";
+        attrs.push_back({ "class", "quality" });
         break;
     case ChordTokenClass::EXTENSION:
-        t += " class=\"extension\"";
+        attrs.push_back({ "class", "extension" });
         break;
     case ChordTokenClass::MODIFIER:
-        t += " class=\"modifier\"";
+        attrs.push_back({ "class", "modifier" });
         break;
     default:
         break;
     }
-    xml.startObject(t);
+    xml.startElement("token", attrs);
     for (const QString& s : names) {
         xml.tag("name", s);
     }
     writeRenderList(xml, renderList, "render");
-    xml.endObject();
+    xml.endElement();
 }
 
 //---------------------------------------------------------
@@ -1631,9 +1631,9 @@ void ChordDescription::write(XmlWriter& xml) const
         return;
     }
     if (id > 0) {
-        xml.startObject(QString("chord id=\"%1\"").arg(id));
+        xml.startElement("chord", { { "id", id } });
     } else {
-        xml.startObject(QString("chord"));
+        xml.startElement("chord");
     }
     for (const QString& s : names) {
         xml.tag("name", s);
@@ -1644,7 +1644,7 @@ void ChordDescription::write(XmlWriter& xml) const
         xml.tag("degree", s);
     }
     writeRenderList(xml, renderList, "render");
-    xml.endObject();
+    xml.endElement();
 }
 
 //---------------------------------------------------------
@@ -1781,23 +1781,23 @@ void ChordList::write(XmlWriter& xml) const
 {
     int fontIdx = 0;
     for (const ChordFont& f : fonts) {
-        xml.startObject(QString("font id=\"%1\" family=\"%2\"").arg(fontIdx).arg(f.family));
+        xml.startElement("font", { { "id", fontIdx }, { "family", f.family } });
         xml.tag("mag", f.mag);
         for (const auto& p : symbols) {
             const ChordSymbol& s = p.second;
             if (s.fontIdx == fontIdx) {
                 if (s.code.isNull()) {
-                    xml.tagE(QString("sym name=\"%1\" value=\"%2\"").arg(s.name, s.value));
+                    xml.tag("sym", { { "name", s.name }, { "value", s.value } });
                 } else {
-                    xml.tagE(QString("sym name=\"%1\" code=\"0x%2\"").arg(s.name).arg(s.code.unicode(), 0, 16));
+                    xml.tag("sym", { { "name", s.name }, { "code", QString("%1").arg(s.code.unicode(), 0, 16) } });
                 }
             }
         }
-        xml.endObject();
+        xml.endElement();
         ++fontIdx;
     }
     if (_autoAdjust) {
-        xml.tagE(QString("autoAdjust mag=\"%1\" adjust=\"%2\"").arg(_nmag).arg(_nadjust));
+        xml.tag("autoAdjust", { { "mag", _nmag }, { "adjust", _nadjust } });
     }
     for (const ChordToken& t : chordTokenList) {
         t.write(xml);
@@ -1913,10 +1913,11 @@ bool ChordList::write(IODevice* device) const
 {
     XmlWriter xml(device);
     xml.startDocument();
-    xml.startObject("museScore version=\"" MSC_VERSION "\"");
+    xml.startElement("museScore", { { "version", MSC_VERSION } });
 
     write(xml);
-    xml.endObject();
+
+    xml.endElement();
 
     return true;
 }

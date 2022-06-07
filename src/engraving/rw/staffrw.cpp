@@ -36,7 +36,7 @@
 using namespace mu::engraving::rw;
 using namespace mu::engraving;
 
-void StaffRW::readStaff(mu::engraving::Score* score, mu::engraving::XmlReader& e, ReadContext& ctx)
+void StaffRW::readStaff(Score* score, XmlReader& e, ReadContext& ctx)
 {
     int staff = e.intAttribute("id", 1) - 1;
     int measureIdx = 0;
@@ -138,12 +138,12 @@ static void writeMeasure(XmlWriter& xml, MeasureBase* m, staff_idx_t staffIdx, b
     xml.context()->setCurTick(m->endTick());
 }
 
-void StaffRW::writeStaff(const mu::engraving::Staff* staff, mu::engraving::XmlWriter& xml,
-                         mu::engraving::MeasureBase* measureStart, mu::engraving::MeasureBase* measureEnd,
+void StaffRW::writeStaff(const Staff* staff, XmlWriter& xml,
+                         MeasureBase* measureStart, MeasureBase* measureEnd,
                          staff_idx_t staffStart, staff_idx_t staffIdx,
                          bool selectionOnly)
 {
-    xml.startObject(staff, QString("id=\"%1\"").arg(static_cast<int>(staffIdx + 1 - staffStart)));
+    xml.startElement(staff, { { "id", static_cast<int>(staffIdx + 1 - staffStart) } });
 
     xml.context()->setCurTick(measureStart->tick());
     xml.context()->setTickDiff(xml.context()->curTick());
@@ -164,5 +164,5 @@ void StaffRW::writeStaff(const mu::engraving::Staff* staff, mu::engraving::XmlWr
         writeMeasure(xml, m, staffIdx, writeSystemElements, forceTimeSig);
     }
 
-    xml.endObject();
+    xml.endElement();
 }

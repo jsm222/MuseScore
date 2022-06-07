@@ -67,9 +67,9 @@ public:
 
     Segment* segment() const { return toSegment(explicitParent()); }
 
-    mu::engraving::PropertyValue propertyDefault(Pid) const override;
+    PropertyValue propertyDefault(Pid) const override;
 
     bool placeMultiple() const override { return false; }
 };
-}     // namespace Ms
+} // namespace mu::engraving
 #endif

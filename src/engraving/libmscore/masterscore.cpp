@@ -139,16 +139,6 @@ void MasterScore::setFileInfoProvider(IFileInfoProviderPtr fileInfoProvider)
     m_fileInfoProvider = fileInfoProvider;
 }
 
-bool MasterScore::isNewlyCreated() const
-{
-    return m_isNewlyCreated;
-}
-
-void MasterScore::setNewlyCreated(bool val)
-{
-    m_isNewlyCreated = val;
-}
-
 bool MasterScore::saved() const
 {
     return m_saved;
@@ -338,7 +328,7 @@ bool MasterScore::writeMscz(MscWriter& mscWriter, bool onlySelection, bool doCre
     return true;
 }
 
-bool MasterScore::exportPart(mu::engraving::MscWriter& mscWriter, Score* partScore)
+bool MasterScore::exportPart(MscWriter& mscWriter, Score* partScore)
 {
     // Write excerpt style as main
     {
@@ -461,11 +451,11 @@ MasterScore* MasterScore::clone()
     xml.setContext(&writeCtx);
     xml.startDocument();
 
-    xml.startObject("museScore version=\"" MSC_VERSION "\"");
+    xml.startElement("museScore", { { "version", MSC_VERSION } });
 
     compat::WriteScoreHook hook;
     write(xml, false, hook);
-    xml.endObject();
+    xml.endElement();
 
     buffer.close();
 

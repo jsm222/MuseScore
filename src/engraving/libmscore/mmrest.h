@@ -43,9 +43,9 @@ public:
 
     void write(XmlWriter&) const override;
 
-    mu::engraving::PropertyValue propertyDefault(Pid) const override;
-    bool setProperty(Pid, const mu::engraving::PropertyValue&) override;
-    mu::engraving::PropertyValue getProperty(Pid) const override;
+    PropertyValue propertyDefault(Pid) const override;
+    bool setProperty(Pid, const PropertyValue&) override;
+    PropertyValue getProperty(Pid) const override;
 
     Shape shape() const override;
 
@@ -63,5 +63,5 @@ private:
     SymIdList m_restSyms; // stores symbols when using old-style rests
     qreal m_symsWidth;    // width of symbols with spacing when using old-style
 };
-}     // namespace Ms
+} // namespace mu::engraving
 #endif

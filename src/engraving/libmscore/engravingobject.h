@@ -153,8 +153,8 @@ class Fermata;
 
 class LetRing;
 class LetRingSegment;
-class TempoChangeRanged;
-class TempoChangeRangedSegment;
+class GradualTempoChange;
+class GradualTempoChangeSegment;
 class Vibrato;
 class VibratoSegment;
 class PalmMute;
@@ -244,11 +244,11 @@ public:
     const MStyle* style() const;
     QString mscoreVersion() const;
 
-    virtual mu::engraving::PropertyValue getProperty(Pid) const = 0;
-    virtual bool setProperty(Pid, const mu::engraving::PropertyValue&) = 0;
-    virtual mu::engraving::PropertyValue propertyDefault(Pid) const;
+    virtual PropertyValue getProperty(Pid) const = 0;
+    virtual bool setProperty(Pid, const PropertyValue&) = 0;
+    virtual PropertyValue propertyDefault(Pid) const;
     virtual void resetProperty(Pid id);
-    mu::engraving::PropertyValue propertyDefault(Pid pid, TextStyleType tid) const;
+    PropertyValue propertyDefault(Pid pid, TextStyleType tid) const;
     virtual bool sizeIsSpatiumDependent() const { return true; }
     virtual bool offsetIsSpatiumDependent() const { return true; }
 
@@ -262,7 +262,7 @@ public:
     virtual PropertyFlags* propertyFlagsList() const { return _propertyFlagsList; }
     virtual PropertyFlags propertyFlags(Pid) const;
     bool isStyled(Pid pid) const;
-    mu::engraving::PropertyValue styleValue(Pid, Sid) const;
+    PropertyValue styleValue(Pid, Sid) const;
 
     void setPropertyFlags(Pid, PropertyFlags);
 
@@ -275,8 +275,8 @@ public:
 
     virtual void styleChanged();
 
-    virtual void undoChangeProperty(Pid id, const mu::engraving::PropertyValue&, PropertyFlags ps);
-    void undoChangeProperty(Pid id, const mu::engraving::PropertyValue&);
+    virtual void undoChangeProperty(Pid id, const PropertyValue&, PropertyFlags ps);
+    void undoChangeProperty(Pid id, const PropertyValue&);
     void undoResetProperty(Pid id);
 
     void undoPushProperty(Pid);
@@ -373,8 +373,8 @@ public:
     CONVERT(TrillSegment,  TRILL_SEGMENT)
     CONVERT(LetRing,       LET_RING)
     CONVERT(LetRingSegment, LET_RING_SEGMENT)
-    CONVERT(TempoChangeRanged, TEMPO_RANGED_CHANGE)
-    CONVERT(TempoChangeRangedSegment, TEMPO_RANGED_CHANGE_SEGMENT)
+    CONVERT(GradualTempoChange, GRADUAL_TEMPO_CHANGE)
+    CONVERT(GradualTempoChangeSegment, GRADUAL_TEMPO_CHANGE_SEGMENT)
     CONVERT(Vibrato,       VIBRATO)
     CONVERT(PalmMute,      PALM_MUTE)
     CONVERT(PalmMuteSegment, PALM_MUTE_SEGMENT)
@@ -429,7 +429,7 @@ public:
     {
         return isHairpinSegment()
                || isLetRingSegment()
-               || isTempoChangeRangedSegment()
+               || isGradualTempoChangeSegment()
                || isTextLineSegment()
                || isOttavaSegment()
                || isPalmMuteSegment()
@@ -461,7 +461,7 @@ public:
     {
         return isHairpin()
                || isLetRing()
-               || isTempoChangeRanged()
+               || isGradualTempoChange()
                || isNoteLine()
                || isOttava()
                || isPalmMute()
@@ -703,8 +703,8 @@ CONVERT(Trill)
 CONVERT(TrillSegment)
 CONVERT(LetRing)
 CONVERT(LetRingSegment)
-CONVERT(TempoChangeRanged)
-CONVERT(TempoChangeRangedSegment)
+CONVERT(GradualTempoChange)
+CONVERT(GradualTempoChangeSegment)
 CONVERT(Vibrato)
 CONVERT(VibratoSegment)
 CONVERT(PalmMute)

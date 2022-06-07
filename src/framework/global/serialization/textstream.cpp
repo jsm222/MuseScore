@@ -63,6 +63,14 @@ TextStream& TextStream::operator<<(int val)
     return *this;
 }
 
+TextStream& TextStream::operator<<(unsigned int val)
+{
+    std::stringstream ss;
+    ss << val;
+    write(ss.str().c_str(), ss.str().size());
+    return *this;
+}
+
 TextStream& TextStream::operator<<(double val)
 {
     std::stringstream ss;
@@ -72,6 +80,14 @@ TextStream& TextStream::operator<<(double val)
 }
 
 TextStream& TextStream::operator<<(int64_t val)
+{
+    std::stringstream ss;
+    ss << val;
+    write(ss.str().c_str(), ss.str().size());
+    return *this;
+}
+
+TextStream& TextStream::operator<<(size_t val)
 {
     std::stringstream ss;
     ss << val;

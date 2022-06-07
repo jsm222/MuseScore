@@ -445,9 +445,10 @@ QString FiguredBassItem::normalizedText() const
 
 void FiguredBassItem::write(XmlWriter& xml) const
 {
-    xml.startObject("FiguredBassItem", this);
-    xml.tagE(QString("brackets b0=\"%1\" b1=\"%2\" b2=\"%3\" b3=\"%4\" b4=\"%5\"")
-             .arg(int(parenth[0])).arg(int(parenth[1])).arg(int(parenth[2])).arg(int(parenth[3])).arg(int(parenth[4])));
+    xml.startElement("FiguredBassItem", this);
+    xml.tag("brackets", { { "b0", int(parenth[0]) }, { "b1", int(parenth[1]) },  { "b2", int(parenth[2]) }, { "b3", int(parenth[3]) },
+                { "b4", int(parenth[4]) } });
+
     if (_prefix != Modifier::NONE) {
         xml.tag("prefix", int(_prefix));
     }
@@ -460,7 +461,7 @@ void FiguredBassItem::write(XmlWriter& xml) const
     if (_contLine != ContLine::NONE) {
         xml.tag("continuationLine", int(_contLine));
     }
-    xml.endObject();
+    xml.endElement();
 }
 
 //---------------------------------------------------------
@@ -934,7 +935,7 @@ QString FiguredBassItem::Modifier2MusicXML(FiguredBassItem::Modifier prefix) con
 
 void FiguredBassItem::writeMusicXML(XmlWriter& xml, bool isOriginalFigure, int crEndTick, int fbEndTick) const
 {
-    xml.startObject("figure");
+    xml.startElement("figure");
 
     // The first figure of each group is the "original" figure. Practically, it is one inserted manually
     // by the user, rather than automatically by the "duration" extend method.
@@ -955,29 +956,29 @@ void FiguredBassItem::writeMusicXML(XmlWriter& xml, bool isOriginalFigure, int c
         // extends to the next note, and so carries an extension type "start" by definition.
         if (fbEndTick <= crEndTick) {
             if (_contLine == ContLine::SIMPLE) {
-                xml.tagE("extend type=\"stop\" ");
+                xml.tag("extend", { { "type", "stop" } });
             } else if (_contLine == ContLine::EXTENDED) {
                 bool hasFigure = (strPrefix != "" || _digit != FBIDigitNone || strSuffix != "");
                 if (hasFigure) {
-                    xml.tagE("extend type=\"start\" ");
+                    xml.tag("extend", { { "type", "start" } });
                 } else {
-                    xml.tagE("extend type=\"continue\" ");
+                    xml.tag("extend", { { "type", "continue" } });
                 }
             }
         } else {
-            xml.tagE("extend type=\"start\" ");
+            xml.tag("extend", { { "type", "start" } });
         }
     }
     // If the figure is not "original", it must have been created using the "duration" feature of figured bass.
     // In other words, the original figure belongs to a previous note rather than the current note.
     else {
         if (crEndTick < fbEndTick) {
-            xml.tagE("extend type=\"continue\" ");
+            xml.tag("extend", { { "type", "continue" } });
         } else {
-            xml.tagE("extend type=\"stop\" ");
+            xml.tag("extend", { { "type", "stop" } });
         }
     }
-    xml.endObject();
+    xml.endElement();
 }
 
 //---------------------------------------------------------
@@ -1068,12 +1069,12 @@ void FiguredBass::write(XmlWriter& xml) const
     if (!xml.context()->canWrite(this)) {
         return;
     }
-    xml.startObject(this);
+    xml.startElement(this);
     if (!onNote()) {
         xml.tag("onNote", onNote());
     }
     if (ticks().isNotZero()) {
-        xml.tag("ticks", ticks());
+        xml.tagFraction("ticks", ticks());
     }
     // if unparseable items, write full text data
     if (items.size() < 1) {
@@ -1090,7 +1091,7 @@ void FiguredBass::write(XmlWriter& xml) const
         }
         EngravingItem::writeProperties(xml);
     }
-    xml.endObject();
+    xml.endElement();
 }
 
 //---------------------------------------------------------
@@ -1779,18 +1780,18 @@ bool FiguredBass::hasParentheses() const
 void FiguredBass::writeMusicXML(XmlWriter& xml, bool isOriginalFigure, int crEndTick, int fbEndTick, bool writeDuration,
                                 int divisions) const
 {
-    QString stag = "figured-bass";
+    XmlWriter::Attributes attrs;
     if (hasParentheses()) {
-        stag += " parentheses=\"yes\"";
+        attrs = { { "parentheses", "yes" } };
     }
-    xml.startObject(stag);
+    xml.startElement("figured-bass", attrs);
     for (FiguredBassItem* item : items) {
         item->writeMusicXML(xml, isOriginalFigure, crEndTick, fbEndTick);
     }
     if (writeDuration) {
         xml.tag("duration", ticks().ticks() / divisions);
     }
-    xml.endObject();
+    xml.endElement();
 }
 
 //---------------------------------------------------------

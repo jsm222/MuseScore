@@ -89,7 +89,7 @@
 #include "system.h"
 #include "tempo.h"
 #include "tempotext.h"
-#include "tempochangeranged.h"
+#include "gradualtempochange.h"
 #include "text.h"
 #include "tie.h"
 #include "tiemap.h"
@@ -328,10 +328,10 @@ Score::Score()
 
     _scoreFont = ScoreFont::fontByName("Leland");
 
-    _fileDivision           = Constant::division;
+    _fileDivision           = Constants::division;
     _style  = DefaultStyle::defaultStyle();
 
-    m_rootItem = new mu::engraving::RootItem(this);
+    m_rootItem = new RootItem(this);
     m_rootItem->init();
     createPaddingTable();
 
@@ -475,12 +475,12 @@ Score* Score::clone()
 
 Score* Score::paletteScore()
 {
-    return mu::engraving::gpaletteScore;
+    return gpaletteScore;
 }
 
 bool Score::isPaletteScore() const
 {
-    return this == mu::engraving::gpaletteScore;
+    return this == gpaletteScore;
 }
 
 //---------------------------------------------------------
@@ -567,11 +567,11 @@ void Score::setUpTempoMap()
 
     for (const auto& pair : spanner()) {
         const Spanner* spannerItem = pair.second;
-        if (!spannerItem || !spannerItem->isTempoChangeRanged()) {
+        if (!spannerItem || !spannerItem->isGradualTempoChange()) {
             continue;
         }
 
-        const TempoChangeRanged* tempoChange = toTempoChangeRanged(spannerItem);
+        const GradualTempoChange* tempoChange = toGradualTempoChange(spannerItem);
         if (!tempoChange) {
             continue;
         }
@@ -1096,8 +1096,8 @@ void Score::spell(Note* note)
     nn = prevNote(nn);
     notes.insert(notes.begin(), nn);
 
-    int opt = mu::engraving::computeWindow(notes, 0, 7);
-    note->setTpc(mu::engraving::tpc(3, note->pitch(), opt));
+    int opt = computeWindow(notes, 0, 7);
+    note->setTpc(tpc(3, note->pitch(), opt));
 }
 
 //---------------------------------------------------------
@@ -1565,7 +1565,7 @@ void Score::addElement(EngravingItem* element)
     case ElementType::TEXTLINE:
     case ElementType::HAIRPIN:
     case ElementType::LET_RING:
-    case ElementType::TEMPO_RANGED_CHANGE:
+    case ElementType::GRADUAL_TEMPO_CHANGE:
     case ElementType::PALM_MUTE:
     case ElementType::WHAMMY_BAR:
     case ElementType::RASGUEADO:
@@ -1723,7 +1723,7 @@ void Score::removeElement(EngravingItem* element)
     case ElementType::VIBRATO:
     case ElementType::PEDAL:
     case ElementType::LET_RING:
-    case ElementType::TEMPO_RANGED_CHANGE:
+    case ElementType::GRADUAL_TEMPO_CHANGE:
     case ElementType::PALM_MUTE:
     case ElementType::WHAMMY_BAR:
     case ElementType::RASGUEADO:
@@ -2763,7 +2763,7 @@ KeyList Score::keyList() const
 
     Key normalizedC = Key::C;
     // normalize the keyevents to concert pitch if necessary
-    if (firstStaff && !masterScore()->styleB(mu::engraving::Sid::concertPitch) && firstStaff->part()->instrument()->transpose().chromatic) {
+    if (firstStaff && !masterScore()->styleB(Sid::concertPitch) && firstStaff->part()->instrument()->transpose().chromatic) {
         int interval = firstStaff->part()->instrument()->transpose().chromatic;
         normalizedC = transposeKey(normalizedC, interval);
         for (auto i = tmpKeymap.begin(); i != tmpKeymap.end(); ++i) {
@@ -2966,7 +2966,7 @@ void Score::mapExcerptTracks(const std::vector<staff_idx_t>& dst)
 
 void Score::cmdConcertPitchChanged(bool flag)
 {
-    if (flag == styleB(mu::engraving::Sid::concertPitch)) {
+    if (flag == styleB(Sid::concertPitch)) {
         return;
     }
 

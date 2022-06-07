@@ -222,7 +222,7 @@ void ChordLine::read(XmlReader& e)
 
 void ChordLine::write(XmlWriter& xml) const
 {
-    xml.startObject(this);
+    xml.startElement(this);
     writeProperty(xml, Pid::CHORD_LINE_TYPE);
     writeProperty(xml, Pid::CHORD_LINE_STRAIGHT);
     xml.tag("lengthX", _lengthX, 0.0);
@@ -230,15 +230,14 @@ void ChordLine::write(XmlWriter& xml) const
     EngravingItem::writeProperties(xml);
     if (modified) {
         size_t n = path.elementCount();
-        xml.startObject("Path");
+        xml.startElement("Path");
         for (size_t i = 0; i < n; ++i) {
             const PainterPath::Element& e = path.elementAt(i);
-            xml.tagE(QString("Element type=\"%1\" x=\"%2\" y=\"%3\"")
-                     .arg(int(e.type)).arg(e.x).arg(e.y));
+            xml.tag("Element", { { "type", int(e.type) }, { "x", e.x }, { "y", e.y } });
         }
-        xml.endObject();
+        xml.endElement();
     }
-    xml.endObject();
+    xml.endElement();
 }
 
 //---------------------------------------------------------

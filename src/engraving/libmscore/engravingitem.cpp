@@ -233,9 +233,9 @@ EngravingItemList EngravingItem::childrenItems() const
     return list;
 }
 
-mu::engraving::AccessibleItem* EngravingItem::createAccessible()
+AccessibleItem* EngravingItem::createAccessible()
 {
-    return new mu::engraving::AccessibleItem(this);
+    return new AccessibleItem(this);
 }
 
 //---------------------------------------------------------
@@ -885,7 +885,7 @@ void EngravingItem::writeProperties(XmlWriter& xml) const
         }
         Location loc = Location::positionForElement(this);
         if (me == this) {
-            xml.tagE("linkedMain");
+            xml.tag("linkedMain");
             int index = ctx->assignLocalIndex(loc);
             ctx->setLidLocalIndex(_links->lid(), index);
         } else {
@@ -893,7 +893,7 @@ void EngravingItem::writeProperties(XmlWriter& xml) const
                 Staff* linkedStaff = toStaff(s->links()->mainElement());
                 loc.setStaff(static_cast<int>(linkedStaff->idx()));
             }
-            xml.startObject("linked");
+            xml.startElement("linked");
             if (!me->score()->isMaster()) {
                 if (me->score() == score()) {
                     xml.tag("score", "same");
@@ -912,7 +912,7 @@ void EngravingItem::writeProperties(XmlWriter& xml) const
             }
             const int indexDiff = ctx->lidLocalIndex(_links->lid()) - guessedLocalIndex;
             xml.tag("indexDiff", indexDiff, 0);
-            xml.endObject();       // </linked>
+            xml.endElement();       // </linked>
         }
     }
     if ((xml.context()->writeTrack() || track() != xml.context()->curTrack())
@@ -923,7 +923,7 @@ void EngravingItem::writeProperties(XmlWriter& xml) const
         xml.tag("track", t);
     }
     if (xml.context()->writePosition()) {
-        xml.tag(Pid::POSITION, rtick());
+        xml.tagProperty(Pid::POSITION, rtick());
     }
     if (_tag != 0x1) {
         for (int i = 1; i < MAX_TAGS; i++) {
@@ -1086,9 +1086,9 @@ bool EngravingItem::readProperties(XmlReader& e)
 
 void EngravingItem::write(XmlWriter& xml) const
 {
-    xml.startObject(this);
+    xml.startElement(this);
     writeProperties(xml);
-    xml.endObject();
+    xml.endElement();
 }
 
 //---------------------------------------------------------
@@ -1270,15 +1270,15 @@ ByteArray EngravingItem::mimeData(const PointF& dragOffset) const
     buffer.open(IODevice::WriteOnly);
     XmlWriter xml(&buffer);
     xml.context()->setClipboardmode(true);
-    xml.startObject("EngravingItem");
+    xml.startElement("EngravingItem");
     if (isNote()) {
-        xml.tag("duration", toNote(this)->chord()->ticks());
+        xml.tagFraction("duration", toNote(this)->chord()->ticks());
     }
     if (!dragOffset.isNull()) {
-        xml.tag("dragOffset", dragOffset);
+        xml.tagPoint("dragOffset", dragOffset);
     }
     write(xml);
-    xml.endObject();
+    xml.endElement();
     buffer.close();
     return buffer.data();
 }
@@ -1995,7 +1995,7 @@ EngravingItem* EngravingItem::prevSegmentElement()
     return score()->firstElement();
 }
 
-mu::engraving::AccessibleItem* EngravingItem::accessible() const
+AccessibleItem* EngravingItem::accessible() const
 {
     return m_accessible;
 }
@@ -2454,13 +2454,13 @@ std::pair<int, float> EngravingItem::barbeat() const
     int beat = 0;
     int ticks = 0;
 
-    const mu::engraving::TimeSigMap* timeSigMap = score()->sigmap();
-    int ticksB = mu::engraving::ticks_beat(timeSigMap->timesig(0).timesig().denominator());
+    const TimeSigMap* timeSigMap = score()->sigmap();
+    int ticksB = ticks_beat(timeSigMap->timesig(0).timesig().denominator());
 
     if (parent->type() == ElementType::SEGMENT) {
-        const mu::engraving::Segment* segment = static_cast<const mu::engraving::Segment*>(parent);
+        const Segment* segment = static_cast<const Segment*>(parent);
         timeSigMap->tickValues(segment->tick().ticks(), &bar, &beat, &ticks);
-        ticksB = mu::engraving::ticks_beat(timeSigMap->timesig(segment->tick().ticks()).timesig().denominator());
+        ticksB = ticks_beat(timeSigMap->timesig(segment->tick().ticks()).timesig().denominator());
     } else if (parent->type() == ElementType::MEASURE) {
         const Measure* measure = static_cast<const Measure*>(parent);
         bar = measure->no();

@@ -39,7 +39,7 @@
 using namespace mu::io;
 using namespace mu::engraving;
 
-Err ScoreReader::loadMscz(mu::engraving::MasterScore* masterScore, const mu::engraving::MscReader& mscReader, bool ignoreVersionError)
+Err ScoreReader::loadMscz(MasterScore* masterScore, const MscReader& mscReader, bool ignoreVersionError)
 {
     TRACEFUNC;
 
@@ -194,8 +194,11 @@ Err ScoreReader::read(MasterScore* score, XmlReader& e, ReadContext& ctx, compat
                 err = doRead(score, e, ctx);
             }
 
-            score->setNewlyCreated(false);
             score->setExcerptsChanged(false);
+
+            // don't autosave (as long as there's no change to the score)
+            score->setAutosaveDirty(false);
+
             return err;
         } else {
             e.unknown();

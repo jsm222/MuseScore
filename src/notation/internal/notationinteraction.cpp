@@ -853,7 +853,13 @@ void NotationInteraction::startDrag(const std::vector<EngravingItem*>& elems,
     m_editData.modifiers = QGuiApplication::keyboardModifiers();
 
     for (EngravingItem* e : m_dragData.elements) {
-        if (!isDraggable(e)) {
+        bool draggable = isDraggable(e);
+
+        if (!draggable && e->isSpanner()) {
+            draggable = isDraggable(toSpanner(e)->frontSegment());
+        }
+
+        if (!draggable) {
             continue;
         }
 
@@ -1086,7 +1092,7 @@ bool NotationInteraction::isDropAccepted(const PointF& pos, Qt::KeyboardModifier
         return dragMeasureAnchorElement(pos);
     case ElementType::PEDAL:
     case ElementType::LET_RING:
-    case ElementType::TEMPO_RANGED_CHANGE:
+    case ElementType::GRADUAL_TEMPO_CHANGE:
     case ElementType::VIBRATO:
     case ElementType::PALM_MUTE:
     case ElementType::OTTAVA:
@@ -1192,7 +1198,7 @@ bool NotationInteraction::drop(const PointF& pos, Qt::KeyboardModifiers modifier
     case ElementType::TRILL:
     case ElementType::PEDAL:
     case ElementType::LET_RING:
-    case ElementType::TEMPO_RANGED_CHANGE:
+    case ElementType::GRADUAL_TEMPO_CHANGE:
     case ElementType::VIBRATO:
     case ElementType::PALM_MUTE:
     case ElementType::HAIRPIN:
@@ -2462,7 +2468,7 @@ void NotationInteraction::moveElementSelection(MoveDirection d)
         endEditElement();
     }
 
-    select({ toEl }, SelectType::SINGLE);
+    select({ toEl }, SelectType::REPLACE);
     resetHitElementContext();
     showItem(toEl);
 
@@ -3514,7 +3520,7 @@ void NotationInteraction::addGraceNotesToSelectedNotes(GraceNoteType type)
     }
 
     startEdit();
-    score()->cmdAddGrace(type, mu::engraving::Constant::division / denominator);
+    score()->cmdAddGrace(type, mu::engraving::Constants::division / denominator);
     apply();
 }
 

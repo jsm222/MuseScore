@@ -41,7 +41,7 @@ public:
     XmlStreamWriter(const XmlStreamWriter&) = delete;
     XmlStreamWriter& operator=(const XmlStreamWriter&) = delete;
 
-    using Value = std::variant<int, int64_t, double, const char*, AsciiString, String>;
+    using Value = std::variant<std::monostate, int, unsigned int, int64_t, size_t, double, const char*, AsciiString, String>;
     using Attribute = std::pair<AsciiString, Value>;
     using Attributes = std::vector<Attribute>;
 
@@ -51,26 +51,25 @@ public:
     void startDocument();
     void writeDoctype(const QString& type);
 
-    void startElement(const AsciiString& name, Attributes attrs);
+    void startElement(const AsciiString& name, const Attributes& attrs = {});
+    void startElement(const String& name, const Attributes& attrs = {});
     void endElement();
 
-    void writeStartElement(const QString& name);
-    void writeStartElement(const QString& name, const QString& attributes);
-    void writeEndElement();
+    void element(const AsciiString& name, const Attributes& attrs = {});                // <element attr="value" />
+    void element(const AsciiString& name, const Value& body);                           // <element>body</element>
+    void element(const AsciiString& name, const Attributes& attrs, const Value& body);  // <element attr="value" >body</element>
 
-    void writeElement(const QString& name, const QString& val);
-    void writeElement(const QString& name, int val);
+    void comment(const String& text);
 
-    void writeElement(const AsciiString& name, const char* val);
-    void writeElement(const AsciiString& name, const AsciiString& val);
-    void writeElement(const AsciiString& name, const QString& val);
-    void writeElement(const AsciiString& name, int val);
-    void writeElement(const AsciiString& name, int64_t val);
-    void writeElement(const AsciiString& name, double val);
+    static QString escapeSymbol(ushort c);
+    static String escapeString(const AsciiString& s);
+    static String escapeString(const String& s);
+    static QString escapeString(const QString& s);
 
-    void writeElement(const QString& nameWithAttributes);
-
-    void writeComment(const QString& text);
+protected:
+    void startElementRaw(const QString& name);
+    void elementRaw(const QString& nameWithAttributes, const Value& body);
+    void elementStringRaw(const QString& nameWithAttributes, const QString& body);
 
 private:
 

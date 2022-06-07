@@ -19,32 +19,25 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-import QtQuick 2.0
-import MuseScore 3.0
 
-MuseScore {
-      version: "3.0"
-      description: "Demo plugin to demonstrate the use of a ScoreView"
-      menuPath: "Plugins.ScoreView"
-      pluginType: "dialog"
+#include "gradualtempochangesettingsmodel.h"
 
-      width:  400
-      height: 400
-      Component.onCompleted: {
-            if (typeof curScore === 'undefined')
-                  Qt.quit();
+using namespace mu::inspector;
+using namespace mu::engraving;
 
-            scoreview.setScore(curScore);
-            }
+GradualTempoChangeSettingsModel::GradualTempoChangeSettingsModel(QObject* parent, IElementRepositoryService* repository)
+    : TextLineSettingsModel(parent, repository, ElementType::GRADUAL_TEMPO_CHANGE)
+{
+    setModelType(InspectorModelType::TYPE_GRADUAL_TEMPO_CHANGE);
+    setTitle(qtrc("inspector", "Tempo change"));
 
-      ScoreView {
-            id: scoreview
-            anchors.fill: parent
-            color: "white"
-            MouseArea {
-                  anchors.fill: parent
-                  onClicked: Qt.quit()
-                  }
-            }
-      }
+    createProperties();
+}
 
+void GradualTempoChangeSettingsModel::createProperties()
+{
+    TextLineSettingsModel::createProperties();
+
+    isLineVisible()->setIsVisible(true);
+    placement()->setIsVisible(true);
+}

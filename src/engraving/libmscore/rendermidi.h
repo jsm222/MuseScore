@@ -127,7 +127,7 @@ public:
 
     struct Context
     {
-        mu::engraving::SynthesizerState synthState;
+        SynthesizerState synthState;
         bool metronome{ true };
         bool renderHarmony{ false };
 
@@ -147,6 +147,6 @@ public:
 
 class Spanner;
 extern bool glissandoPitchOffsets(const Spanner* spanner, std::vector<int>& pitchOffsets);
-} // namespace Ms
+} // namespace mu::engraving
 
 #endif

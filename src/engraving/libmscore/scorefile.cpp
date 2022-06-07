@@ -107,14 +107,14 @@ void Score::write(XmlWriter& xml, bool selectionOnly, compat::WriteScoreHook& ho
         }
     }
 
-    xml.startObject(this);
+    xml.startElement(this);
 
     if (excerpt()) {
         Excerpt* e = excerpt();
         TracksMap trackList = e->tracksMapping();
         if (!(trackList.size() == e->nstaves() * VOICES) && !trackList.empty()) {
             for (auto it = trackList.begin(); it != trackList.end(); ++it) {
-                xml.tagE(QString("Tracklist sTrack=\"%1\" dstTrack=\"%2\"").arg(it->first).arg(it->second));
+                xml.tag("Tracklist", { { "sTrack", it->first }, { "dstTrack", it->second } });
             }
         }
     }
@@ -133,14 +133,13 @@ void Score::write(XmlWriter& xml, bool selectionOnly, compat::WriteScoreHook& ho
 
     for (int i = 0; i < 32; ++i) {
         if (!_layerTags[i].isEmpty()) {
-            xml.tag(QString("LayerTag id=\"%1\" tag=\"%2\"").arg(i).arg(_layerTags[i]),
-                    _layerTagComments[i]);
+            xml.tag("LayerTag", { { "id", i }, { "tag", _layerTags[i] } }, _layerTagComments[i]);
         }
     }
     size_t n = _layer.size();
     for (size_t i = 1; i < n; ++i) {         // don’t save default variant
         const Layer& l = _layer.at(i);
-        xml.tagE(QString("Layer name=\"%1\" mask=\"%2\"").arg(l.name).arg(l.tags));
+        xml.tag("Layer",  { { "name", l.name }, { "mask", l.tags } });
     }
     xml.tag("currentLayer", _currentLayer);
 
@@ -151,7 +150,7 @@ void Score::write(XmlWriter& xml, bool selectionOnly, compat::WriteScoreHook& ho
     if (pageNumberOffset()) {
         xml.tag("page-offset", pageNumberOffset());
     }
-    xml.tag("Division", Constant::division);
+    xml.tag("Division", Constants::division);
     xml.context()->setCurTrack(mu::nidx);
 
     hook.onWriteStyle302(this, xml);
@@ -169,7 +168,7 @@ void Score::write(XmlWriter& xml, bool selectionOnly, compat::WriteScoreHook& ho
     for (const auto& t : _metaTags) {
         // do not output "platform" and "creationDate" in test and save template mode
         if ((!MScore::testMode && !MScore::saveTemplateMode) || (t.first != "platform" && t.first != "creationDate")) {
-            xml.tag(QString("metaTag name=\"%1\"").arg(t.first.toHtmlEscaped()), t.second);
+            xml.tag("metaTag", { { "name", t.first.toHtmlEscaped() } }, t.second);
         }
     }
 
@@ -181,15 +180,15 @@ void Score::write(XmlWriter& xml, bool selectionOnly, compat::WriteScoreHook& ho
 
     if (!systemObjectStaves.empty()) {
         // write which staves currently have system objects above them
-        xml.startObject("SystemObjects");
+        xml.startElement("SystemObjects");
         for (Staff* s : systemObjectStaves) {
             // TODO: when we add more granularity to system object display, construct this string per staff
             QString sysObjForStaff = "barNumbers=\"false\"";
             // for now, everything except bar numbers is shown on system object staves
             // (also, the code to display bar numbers on system staves other than the first currently does not exist!)
-            xml.tagE(QString("Instance staffId=\"%1\" %2").arg(s->idx() + 1).arg(sysObjForStaff));
+            xml.tag("Instance", { { "staffId", s->idx() + 1 }, { "barNumbers", "false" } });
         }
-        xml.endObject();
+        xml.endElement();
     }
 
     xml.context()->setCurTrack(0);
@@ -244,7 +243,7 @@ void Score::write(XmlWriter& xml, bool selectionOnly, compat::WriteScoreHook& ho
 
     hook.onWriteExcerpts302(this, xml, selectionOnly);
 
-    xml.endObject();
+    xml.endElement();
 
     if (unhide) {
         endCmd(true);
@@ -373,7 +372,7 @@ bool Score::saveStyle(const QString& name)
 //extern QString revision;
 static QString revision;
 
-bool Score::writeScore(io::IODevice* f, bool msczFormat, bool onlySelection, mu::engraving::compat::WriteScoreHook& hook)
+bool Score::writeScore(io::IODevice* f, bool msczFormat, bool onlySelection, compat::WriteScoreHook& hook)
 {
     WriteContext ctx;
     return writeScore(f, msczFormat, onlySelection, hook, ctx);
@@ -447,10 +446,10 @@ static bool writeVoiceMove(XmlWriter& xml, Segment* seg, const Fraction& startTi
     int& lastTrackWritten = *lastTrackWrittenPtr;
     if ((lastTrackWritten < static_cast<int>(track)) && !xml.context()->clipboardmode()) {
         while (lastTrackWritten < (static_cast < int > (track) - 1)) {
-            xml.tagE("voice");
+            xml.tag("voice");
             ++lastTrackWritten;
         }
-        xml.startObject("voice");
+        xml.startElement("voice");
         xml.context()->setCurTick(startTick);
         xml.context()->setCurTrack(track);
         ++lastTrackWritten;
@@ -695,7 +694,7 @@ void Score::writeSegments(XmlWriter& xml, track_idx_t strack, track_idx_t etrack
         }
 
         if (voiceTagWritten) {
-            xml.endObject();       // </voice>
+            xml.endElement();       // </voice>
         }
     }
 }

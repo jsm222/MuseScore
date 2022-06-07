@@ -34,8 +34,8 @@ namespace mu::engraving {
 
 int ticks_beat(int n)
 {
-    int m = (Constant::division * 4) / n;
-    if ((Constant::division* 4) % n) {
+    int m = (Constants::division * 4) / n;
+    if ((Constants::division* 4) % n) {
         ASSERT_X(QString::asprintf("Mscore: ticks_beat(): bad divisor %d", n));
     }
     return m;
@@ -47,7 +47,7 @@ int ticks_beat(int n)
 
 static int ticks_measure(const Fraction& f)
 {
-    return (Constant::division * 4 * f.numerator()) / f.denominator();
+    return (Constants::division * 4 * f.numerator()) / f.denominator();
 }
 
 //---------------------------------------------------------
@@ -394,11 +394,11 @@ int TimeSigMap::bar2tick(int bar, int beat) const
 
 void TimeSigMap::write(XmlWriter& xml) const
 {
-    xml.startObject("siglist");
+    xml.startElement("siglist");
     for (auto i = begin(); i != end(); ++i) {
         i->second.write(xml, i->first);
     }
-    xml.endObject();
+    xml.endElement();
 }
 
 //---------------------------------------------------------
@@ -426,10 +426,10 @@ void TimeSigMap::read(XmlReader& e, int fileDivision)
 
 void SigEvent::write(XmlWriter& xml, int tick) const
 {
-    xml.startObject(QString("sig tick=\"%1\"").arg(tick));
+    xml.startElement("sig", { { "tick", tick } });
     xml.tag("nom",   _timesig.numerator());
     xml.tag("denom", _timesig.denominator());
-    xml.endObject();
+    xml.endElement();
 }
 
 //---------------------------------------------------------
@@ -439,7 +439,7 @@ void SigEvent::write(XmlWriter& xml, int tick) const
 int SigEvent::read(XmlReader& e, int fileDivision)
 {
     int tick  = e.intAttribute("tick", 0);
-    tick      = tick * Constant::division / fileDivision;
+    tick      = tick * Constants::division / fileDivision;
 
     int numerator = 1;
     int denominator = 1;
@@ -578,6 +578,6 @@ void TimeSigMap::dump() const
 
 int TimeSigFrac::dUnitTicks() const
 {
-    return (4 * Constant::division) / denominator();
+    return (4 * Constants::division) / denominator();
 }
 }

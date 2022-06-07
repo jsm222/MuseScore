@@ -94,10 +94,10 @@ public:
     void fillPositionForElement(const EngravingItem* e, bool absfrac = true);
     static Location forElement(const EngravingItem* e, bool absfrac = true);
     static Location positionForElement(const EngravingItem* e, bool absfrac = true);
-    static mu::engraving::PropertyValue getLocationProperty(Pid pid, const EngravingItem* start, const EngravingItem* end);
+    static PropertyValue getLocationProperty(Pid pid, const EngravingItem* start, const EngravingItem* end);
 
     bool operator==(const Location& other) const;
     bool operator!=(const Location& other) const { return !(*this == other); }
 };
-}     // namespace Ms
+} // namespace mu::engraving
 #endif

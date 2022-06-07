@@ -19,28 +19,22 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+#ifndef MU_INSPECTOR_GRADUALTEMPOCHANGESETTINGSMODEL_H
+#define MU_INSPECTOR_GRADUALTEMPOCHANGESETTINGSMODEL_H
 
-import QtQuick 2.0
-import MuseScore 3.0
+#include "textlinesettingsmodel.h"
 
-MuseScore {
-      menuPath: "Plugins.run"
-      version:  "3.0"
-      description: "This demo plugin runs an external command."
-      requiresScore: false
+namespace mu::inspector {
+class GradualTempoChangeSettingsModel : public TextLineSettingsModel
+{
+    Q_OBJECT
 
-      QProcess {
-        id: proc
-        }
+public:
+    explicit GradualTempoChangeSettingsModel(QObject* parent, IElementRepositoryService* repository);
 
-      onRun: {
-            console.log("run ls");
-            //proc.start("/bin/ls"); // Linux, Mac(?)
-            proc.start("cmd.exe /c dir"); // Windows
-            var val = proc.waitForFinished(30000);
-            if (val)
-                  console.log(proc.readAllStandardOutput());
-            Qt.quit()
-            }
-      }
+private:
+    void createProperties() override;
+};
+}
 
+#endif // MU_INSPECTOR_GRADUALTEMPOCHANGESETTINGSMODEL_H

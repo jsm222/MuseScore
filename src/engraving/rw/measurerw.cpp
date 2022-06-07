@@ -546,8 +546,7 @@ void MeasureRW::readVoice(Measure* measure, XmlReader& e, ReadContext& ctx, int 
     }
 }
 
-void MeasureRW::writeMeasure(const mu::engraving::Measure* measure, XmlWriter& xml, staff_idx_t staff, bool writeSystemElements,
-                             bool forceTimeSig)
+void MeasureRW::writeMeasure(const Measure* measure, XmlWriter& xml, staff_idx_t staff, bool writeSystemElements, bool forceTimeSig)
 {
     if (MScore::debugMode) {
         const int mno = measure->no() + 1;
@@ -555,9 +554,9 @@ void MeasureRW::writeMeasure(const mu::engraving::Measure* measure, XmlWriter& x
     }
     if (measure->_len != measure->m_timesig) {
         // this is an irregular measure
-        xml.startObject(measure, QString("len=\"%1/%2\"").arg(measure->_len.numerator()).arg(measure->_len.denominator()));
+        xml.startElement(measure, { { "len", measure->_len.toString() } });
     } else {
-        xml.startObject(measure);
+        xml.startElement(measure);
     }
 
     xml.context()->setCurTick(measure->tick());
@@ -568,7 +567,7 @@ void MeasureRW::writeMeasure(const mu::engraving::Measure* measure, XmlWriter& x
     }
     if (writeSystemElements) {
         if (measure->repeatStart()) {
-            xml.tagE("startRepeat");
+            xml.tag("startRepeat");
         }
         if (measure->repeatEnd()) {
             xml.tag("endRepeat", measure->m_repeatCount);
@@ -643,5 +642,5 @@ void MeasureRW::writeMeasure(const mu::engraving::Measure* measure, XmlWriter& x
         measure->score()->writeSegments(xml, strack, etrack, measure->first(), measure->last()->next1(), writeSystemElements, forceTimeSig);
     }
 
-    xml.endObject();
+    xml.endElement();
 }

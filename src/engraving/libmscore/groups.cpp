@@ -146,7 +146,7 @@ BeamMode Groups::beamMode(int tick, DurationType d) const
     default:
         return BeamMode::AUTO;
     }
-    const int dm = Constant::division / 8;
+    const int dm = Constants::division / 8;
     for (const GroupNode& e : m_nodes) {
         if (e.pos * dm < tick) {
             continue;
@@ -213,12 +213,11 @@ const Groups& Groups::endings(const Fraction& f)
 
 void Groups::write(XmlWriter& xml) const
 {
-    xml.startObject("Groups");
+    xml.startElement("Groups");
     for (const GroupNode& n : m_nodes) {
-        xml.tagE(QString("Node pos=\"%1\" action=\"%2\"")
-                 .arg(n.pos).arg(n.action));
+        xml.tag("Node", { { "pos", n.pos }, { "action", n.action } });
     }
-    xml.endObject();
+    xml.endElement();
 }
 
 //---------------------------------------------------------

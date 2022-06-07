@@ -59,13 +59,13 @@ public:
 
     LineSegment* createLineSegment(System* parent) override;
 
-    mu::engraving::PropertyValue propertyDefault(Pid propertyId) const override;
+    PropertyValue propertyDefault(Pid propertyId) const override;
     Sid getPropertyStyle(Pid) const override;
-    bool setProperty(Pid propertyId, const mu::engraving::PropertyValue& value) override;
+    bool setProperty(Pid propertyId, const PropertyValue& value) override;
 
 private:
 
     QString m_text;
 };
-}     // namespace Ms
+} // namespace mu::engraving
 #endif

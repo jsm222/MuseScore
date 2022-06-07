@@ -1392,7 +1392,7 @@ void Note::draw(mu::draw::Painter* painter) const
 
 void Note::write(XmlWriter& xml) const
 {
-    xml.startObject(this);
+    xml.startElement(this);
     EngravingItem::writeProperties(xml);
 
     if (_accidental) {
@@ -1419,11 +1419,11 @@ void Note::write(XmlWriter& xml) const
         _tieBack->writeSpannerEnd(xml, this, track());
     }
     if ((chord() == 0 || chord()->playEventType() != PlayEventType::Auto) && !_playEvents.empty()) {
-        xml.startObject("Events");
+        xml.startElement("Events");
         for (const NoteEvent& e : _playEvents) {
             e.write(xml);
         }
-        xml.endObject();
+        xml.endElement();
     }
     for (Pid id : { Pid::PITCH, Pid::TPC1, Pid::TPC2, Pid::SMALL, Pid::MIRROR_HEAD, Pid::DOT_POSITION,
                     Pid::HEAD_SCHEME, Pid::HEAD_GROUP, Pid::VELO_OFFSET, Pid::PLAY, Pid::TUNING, Pid::FRET, Pid::STRING,
@@ -1438,7 +1438,7 @@ void Note::write(XmlWriter& xml) const
         e->writeSpannerEnd(xml, this, track());
     }
 
-    xml.endObject();
+    xml.endElement();
 }
 
 //---------------------------------------------------------
@@ -1912,28 +1912,28 @@ EngravingItem* Note::drop(EditData& data)
     {
         switch (toActionIcon(e)->actionType()) {
         case ActionIconType::ACCIACCATURA:
-            score()->setGraceNote(ch, pitch(), NoteType::ACCIACCATURA, Constant::division / 2);
+            score()->setGraceNote(ch, pitch(), NoteType::ACCIACCATURA, Constants::division / 2);
             break;
         case ActionIconType::APPOGGIATURA:
-            score()->setGraceNote(ch, pitch(), NoteType::APPOGGIATURA, Constant::division / 2);
+            score()->setGraceNote(ch, pitch(), NoteType::APPOGGIATURA, Constants::division / 2);
             break;
         case ActionIconType::GRACE4:
-            score()->setGraceNote(ch, pitch(), NoteType::GRACE4, Constant::division);
+            score()->setGraceNote(ch, pitch(), NoteType::GRACE4, Constants::division);
             break;
         case ActionIconType::GRACE16:
-            score()->setGraceNote(ch, pitch(), NoteType::GRACE16,  Constant::division / 4);
+            score()->setGraceNote(ch, pitch(), NoteType::GRACE16,  Constants::division / 4);
             break;
         case ActionIconType::GRACE32:
-            score()->setGraceNote(ch, pitch(), NoteType::GRACE32, Constant::division / 8);
+            score()->setGraceNote(ch, pitch(), NoteType::GRACE32, Constants::division / 8);
             break;
         case ActionIconType::GRACE8_AFTER:
-            score()->setGraceNote(ch, pitch(), NoteType::GRACE8_AFTER, Constant::division / 2);
+            score()->setGraceNote(ch, pitch(), NoteType::GRACE8_AFTER, Constants::division / 2);
             break;
         case ActionIconType::GRACE16_AFTER:
-            score()->setGraceNote(ch, pitch(), NoteType::GRACE16_AFTER, Constant::division / 4);
+            score()->setGraceNote(ch, pitch(), NoteType::GRACE16_AFTER, Constants::division / 4);
             break;
         case ActionIconType::GRACE32_AFTER:
-            score()->setGraceNote(ch, pitch(), NoteType::GRACE32_AFTER, Constant::division / 8);
+            score()->setGraceNote(ch, pitch(), NoteType::GRACE32_AFTER, Constants::division / 8);
             break;
         case ActionIconType::BEAM_START:
         case ActionIconType::BEAM_MID:
@@ -1961,7 +1961,7 @@ EngravingItem* Note::drop(EditData& data)
         // before the current note
         for (int i = static_cast<int>(nl.size()) - 1; i >= 0; --i) {
             int p = BagpipeEmbellishment::BagpipeNoteInfoList[nl.at(i)].pitch;
-            score()->setGraceNote(ch, p, NoteType::GRACE32, Constant::division / 8);
+            score()->setGraceNote(ch, p, NoteType::GRACE32, Constants::division / 8);
         }
     }
         delete e;

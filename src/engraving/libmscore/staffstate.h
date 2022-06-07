@@ -47,7 +47,7 @@ class StaffState final : public EngravingItem
 
     Instrument* _instrument { nullptr };
 
-    friend class mu::engraving::Factory;
+    friend class Factory;
     StaffState(EngravingItem* parent);
     StaffState(const StaffState&);
 
@@ -76,5 +76,5 @@ public:
     void setInstrument(const Instrument&& i) { *_instrument = i; }
     Segment* segment() { return (Segment*)explicitParent(); }
 };
-}     // namespace Ms
+} // namespace mu::engraving
 #endif

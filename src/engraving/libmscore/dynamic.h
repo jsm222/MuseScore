@@ -95,9 +95,9 @@ public:
     DynamicSpeed velChangeSpeed() const { return _velChangeSpeed; }
     void setVelChangeSpeed(DynamicSpeed val) { _velChangeSpeed = val; }
 
-    mu::engraving::PropertyValue getProperty(Pid propertyId) const override;
-    bool setProperty(Pid propertyId, const mu::engraving::PropertyValue&) override;
-    mu::engraving::PropertyValue propertyDefault(Pid id) const override;
+    PropertyValue getProperty(Pid propertyId) const override;
+    bool setProperty(Pid propertyId, const PropertyValue&) override;
+    PropertyValue propertyDefault(Pid id) const override;
     Pid propertyId(const QStringRef& xmlName) const override;
 
     std::unique_ptr<ElementGroup> getDragGroup(std::function<bool(const EngravingItem*)> isDragged) override;
@@ -108,6 +108,6 @@ public:
 
     static QString dynamicText(DynamicType t);
 };
-}     // namespace Ms
+} // namespace mu::engraving
 
 #endif

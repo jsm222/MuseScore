@@ -168,7 +168,7 @@ void ChordRest::writeProperties(XmlWriter& xml) const
 
     if (!ticks().isZero() && (!actualDurationType().fraction().isValid()
                               || (actualDurationType().fraction() != ticks()))) {
-        xml.tag("duration", ticks());
+        xml.tagFraction("duration", ticks());
         //xml.tagE("duration z=\"%d\" n=\"%d\"", ticks().numerator(), ticks().denominator());
     }
 
@@ -795,16 +795,16 @@ void ChordRest::replaceBeam(Beam* newBeam)
 Slur* ChordRest::slur(const ChordRest* secondChordRest) const
 {
     if (secondChordRest == nullptr) {
-        secondChordRest = mu::engraving::nextChordRest(const_cast<ChordRest*>(this));
+        secondChordRest = nextChordRest(const_cast<ChordRest*>(this));
     }
     int currentTick = tick().ticks();
-    mu::engraving::Slur* result = nullptr;
+    Slur* result = nullptr;
     for (auto it : score()->spannerMap().findOverlapping(currentTick, currentTick + 1)) {
-        mu::engraving::Spanner* spanner = it.value;
+        Spanner* spanner = it.value;
         if (!spanner->isSlur()) {
             continue;
         }
-        mu::engraving::Slur* slur = mu::engraving::toSlur(spanner);
+        Slur* slur = toSlur(spanner);
         if (slur->startElement() == this && slur->endElement() == secondChordRest) {
             if (slur->slurDirection() == DirectionV::AUTO) {
                 return slur;

@@ -35,7 +35,7 @@ namespace mu::engraving {
 
 class Lasso : public EngravingItem
 {
-    INJECT(engraving, mu::engraving::IEngravingConfiguration, engravingConfiguration)
+    INJECT(engraving, IEngravingConfiguration, engravingConfiguration)
 
 public:
     Lasso(Score*);
@@ -53,5 +53,5 @@ public:
     Grip defaultGrip() const override { return Grip(7); }
     std::vector<mu::PointF> gripsPositions(const EditData&) const override;
 };
-}     // namespace Ms
+} // namespace mu::engraving
 #endif

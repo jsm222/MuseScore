@@ -284,8 +284,8 @@ static void fillGap(Measure* measure, track_idx_t track, const Fraction& tstart,
     Fraction restLen = tend - tstart;
     // LOGD("\nfillGIFV     fillGap(measure %p track %d tstart %d tend %d) restLen %d len",
     //        measure, track, tstart, tend, restLen);
-    // note: as Constant::division (#ticks in a quarter note) equals 480
-    // Constant::division / 64 (#ticks in a 256th note) equals 7.5 but is rounded down to 7
+    // note: as Constants::division (#ticks in a quarter note) equals 480
+    // Constants::division / 64 (#ticks in a 256th note) equals 7.5 but is rounded down to 7
     while (restLen > Fraction(1, 256)) {
         Fraction len = restLen;
         TDuration d(DurationType::V_INVALID);
@@ -494,7 +494,7 @@ static Instrument createInstrument(const MusicXMLInstrument& mxmlInstr, const In
         instr.setTranspose(Interval());
     } else {
         // set articulations to default (global articulations)
-        instr.setArticulation(articulation);
+        instr.setArticulation(midiArticulations);
         // set default program
         instr.channel(0)->setProgram(mxmlInstr.midiProgram >= 0 ? mxmlInstr.midiProgram : 0);
     }

@@ -392,19 +392,20 @@ enum class Pid {
     PLAY_TECH_TYPE,
     TEMPO_CHANGE_TYPE,
     TEMPO_EASING_METHOD,
+    TEMPO_CHANGE_FACTOR,
 
     END
 };
 
-extern mu::engraving::PropertyValue readProperty(Pid type, XmlReader& e);
-extern mu::engraving::PropertyValue propertyFromString(mu::engraving::P_TYPE type, QString value);
-extern QString propertyToString(Pid, const mu::engraving::PropertyValue& value, bool mscx);
-extern mu::engraving::P_TYPE propertyType(Pid);
+extern PropertyValue readProperty(Pid type, XmlReader& e);
+extern PropertyValue propertyFromString(P_TYPE type, QString value);
+extern QString propertyToString(Pid, const PropertyValue& value, bool mscx);
+extern P_TYPE propertyType(Pid);
 extern const char* propertyName(Pid);
 extern bool propertyLink(Pid id);
 extern Pid propertyId(const QString& name);
 extern Pid propertyId(const QStringRef& name);
 extern QString propertyUserName(Pid);
-}     // namespace Ms
+} // namespace mu::engraving
 
 #endif

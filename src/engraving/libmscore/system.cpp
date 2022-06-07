@@ -633,8 +633,8 @@ void System::addBrackets(const LayoutContext& ctx, Measure* measure)
 //   Returns the bracket if it got created, else NULL
 //---------------------------------------------------------
 
-Bracket* System::createBracket(const LayoutContext& ctx, mu::engraving::BracketItem* bi, size_t column, staff_idx_t staffIdx,
-                               std::vector<mu::engraving::Bracket*>& bl,
+Bracket* System::createBracket(const LayoutContext& ctx, BracketItem* bi, size_t column, staff_idx_t staffIdx,
+                               std::vector<Bracket*>& bl,
                                Measure* measure)
 {
     size_t nstaves = _staves.size();
@@ -1141,7 +1141,7 @@ void System::add(EngravingItem* el)
     case ElementType::LYRICSLINE_SEGMENT:
     case ElementType::GLISSANDO_SEGMENT:
     case ElementType::LET_RING_SEGMENT:
-    case ElementType::TEMPO_RANGED_CHANGE_SEGMENT:
+    case ElementType::GRADUAL_TEMPO_CHANGE_SEGMENT:
     case ElementType::PALM_MUTE_SEGMENT:
     case ElementType::WHAMMY_BAR_SEGMENT:
     case ElementType::RASGUEADO_SEGMENT:
@@ -1215,7 +1215,7 @@ void System::remove(EngravingItem* el)
     case ElementType::TIE_SEGMENT:
     case ElementType::PEDAL_SEGMENT:
     case ElementType::LYRICSLINE_SEGMENT:
-    case ElementType::TEMPO_RANGED_CHANGE_SEGMENT:
+    case ElementType::GRADUAL_TEMPO_CHANGE_SEGMENT:
     case ElementType::GLISSANDO_SEGMENT:
         if (!mu::remove(_spannerSegments, toSpannerSegment(el))) {
             LOGD("System::remove: %p(%s) not found, score %p", el, el->typeName(), score());
@@ -1412,14 +1412,14 @@ SysStaff* System::staff(size_t staffIdx) const
 
 void System::write(XmlWriter& xml) const
 {
-    xml.startObject(this);
+    xml.startElement(this);
     if (_systemDividerLeft && _systemDividerLeft->isUserModified()) {
         _systemDividerLeft->write(xml);
     }
     if (_systemDividerRight && _systemDividerRight->isUserModified()) {
         _systemDividerRight->write(xml);
     }
-    xml.endObject();
+    xml.endElement();
 }
 
 //---------------------------------------------------------

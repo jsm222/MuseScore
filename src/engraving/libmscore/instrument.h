@@ -88,7 +88,7 @@ struct NamedEventList {
     QString descr;
     std::vector<MidiCoreEvent> events;
 
-    void write(XmlWriter&, const QString& name) const;
+    void write(XmlWriter&, const AsciiString& name) const;
     void read(XmlReader&);
     bool operator==(const NamedEventList& i) const { return i.name == name && i.events == events; }
 };
@@ -449,5 +449,5 @@ public:
     void setInstrument(Instrument*, int tick);
     bool contains(const std::string& instrumentId) const;
 };
-}     // namespace Ms
+} // namespace mu::engraving
 #endif

@@ -2014,13 +2014,13 @@ void Measure::adjustToLen(Fraction nf, bool appendRestsIfNecessary)
 
 void Measure::write(XmlWriter& xml, staff_idx_t staff, bool writeSystemElements, bool forceTimeSig) const
 {
-    mu::engraving::rw::MeasureRW::MeasureRW::writeMeasure(this, xml, staff, writeSystemElements, forceTimeSig);
+    rw::MeasureRW::writeMeasure(this, xml, staff, writeSystemElements, forceTimeSig);
 }
 
 void Measure::read(XmlReader& xml)
 {
     ReadContext ctx(score());
-    mu::engraving::rw::MeasureRW::readMeasure(this, xml, ctx, 0);
+    rw::MeasureRW::readMeasure(this, xml, ctx, 0);
 }
 
 //---------------------------------------------------------
@@ -2037,7 +2037,7 @@ void Measure::readAddConnector(ConnectorInfoReader* info, bool pasteMode)
     case ElementType::TRILL:
     case ElementType::TEXTLINE:
     case ElementType::LET_RING:
-    case ElementType::TEMPO_RANGED_CHANGE:
+    case ElementType::GRADUAL_TEMPO_CHANGE:
     case ElementType::VIBRATO:
     case ElementType::PALM_MUTE:
     case ElementType::WHAMMY_BAR:

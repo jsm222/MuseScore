@@ -84,7 +84,7 @@ bool ScoreOrder::operator!=(const ScoreOrder& order) const
     return !(*this == order);
 }
 
-bool ScoreOrder::readBoolAttribute(mu::engraving::XmlReader& reader, const char* attrName, bool defvalue)
+bool ScoreOrder::readBoolAttribute(XmlReader& reader, const char* attrName, bool defvalue)
 {
     if (!reader.hasAttribute(attrName)) {
         return defvalue;
@@ -103,7 +103,7 @@ bool ScoreOrder::readBoolAttribute(mu::engraving::XmlReader& reader, const char*
 //   readInstrument
 //---------------------------------------------------------
 
-void ScoreOrder::readInstrument(mu::engraving::XmlReader& reader)
+void ScoreOrder::readInstrument(XmlReader& reader)
 {
     QString instrumentId { reader.attribute("id") };
     if (!mu::engraving::searchTemplate(instrumentId)) {
@@ -127,7 +127,7 @@ void ScoreOrder::readInstrument(mu::engraving::XmlReader& reader)
 //   readSoloists
 //---------------------------------------------------------
 
-void ScoreOrder::readSoloists(mu::engraving::XmlReader& reader, const QString section)
+void ScoreOrder::readSoloists(XmlReader& reader, const QString section)
 {
     reader.skipCurrentElement();
     if (hasGroup(SOLOISTS_ID)) {
@@ -143,7 +143,7 @@ void ScoreOrder::readSoloists(mu::engraving::XmlReader& reader, const QString se
 //   readSection
 //---------------------------------------------------------
 
-void ScoreOrder::readSection(mu::engraving::XmlReader& reader)
+void ScoreOrder::readSection(XmlReader& reader)
 {
     QString sectionId { reader.attribute("id") };
     bool barLineSpan = readBoolAttribute(reader, "barLineSpan", true);
@@ -473,7 +473,7 @@ void ScoreOrder::setBracketsAndBarlines(Score* score)
 //   read
 //---------------------------------------------------------
 
-void ScoreOrder::read(mu::engraving::XmlReader& reader)
+void ScoreOrder::read(XmlReader& reader)
 {
     id = reader.attribute("id");
     const QString sectionId { "" };
@@ -517,51 +517,49 @@ void ScoreOrder::read(mu::engraving::XmlReader& reader)
 //   write
 //---------------------------------------------------------
 
-void ScoreOrder::write(mu::engraving::XmlWriter& xml) const
+void ScoreOrder::write(XmlWriter& xml) const
 {
     if (!isValid()) {
         return;
     }
 
-    xml.startObject(QString("Order id=\"%1\"").arg(id));
+    xml.startElement("Order", { { "id", id } });
     xml.tag("name", name);
 
     for (const auto& p : instrumentMap) {
-        xml.startObject(QString("instrument id=\"%1\"").arg(p.first));
-        xml.tag(QString("family id=\"%1\"").arg(p.second.id), p.second.name);
-        xml.endObject();
+        xml.startElement("instrument", { { "id", p.first } });
+        xml.tag("family", { { "id", p.second.id } }, p.second.name);
+        xml.endElement();
     }
 
     QString section { "" };
     for (const ScoreGroup& sg : groups) {
         if (sg.section != section) {
             if (!section.isEmpty()) {
-                xml.endObject();
+                xml.endElement();
             }
             if (!sg.section.isEmpty()) {
-                xml.startObject(QString(
-                                    "section id=\"%1\" brackets=\"%2\" barLineSpan=\"%3\" thinBrackets=\"%4\"")
-                                .arg(sg.section,
-                                     sg.bracket ? "true" : "false",
-                                     sg.barLineSpan ? "true" : "false",
-                                     sg.thinBracket ? "true" : "false"));
+                xml.startElement("section", { { "id", sg.section },
+                                     { "brackets", sg.bracket ? "true" : "false" },
+                                     { "barLineSpan", sg.barLineSpan ? "true" : "false" },
+                                     { "thinBrackets", sg.thinBracket ? "true" : "false" } });
             }
             section = sg.section;
         }
         if (sg.family == SOLOISTS_ID) {
-            xml.tagE("soloists");
+            xml.tag("soloists");
         } else if (sg.unsorted.isNull()) {
             xml.tag("family", sg.family);
         } else if (sg.unsorted.isEmpty()) {
-            xml.tagE("unsorted");
+            xml.tag("unsorted");
         } else {
-            xml.tagE(QString("unsorted group=\"%1\"").arg(sg.unsorted));
+            xml.tag("unsorted", { { "group", sg.unsorted } });
         }
     }
     if (!section.isEmpty()) {
-        xml.endObject();
+        xml.endElement();
     }
-    xml.endObject();
+    xml.endElement();
 }
 
 //---------------------------------------------------------

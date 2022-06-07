@@ -1294,7 +1294,7 @@ void SLine::writeProperties(XmlWriter& xml) const
     if (!endElement()) {
         ((Spanner*)this)->computeEndElement();                    // HACK
         if (!endElement()) {
-            xml.tag("ticks", ticks());
+            xml.tagFraction("ticks", ticks());
         }
     }
     Spanner::writeProperties(xml);
@@ -1339,18 +1339,18 @@ void SLine::writeProperties(XmlWriter& xml) const
     //
     qreal _spatium = score()->spatium();
     for (const SpannerSegment* seg : spannerSegments()) {
-        xml.startObject("Segment", seg);
+        xml.startElement("Segment", seg);
         xml.tag("subtype", int(seg->spannerSegmentType()));
         // TODO:
         // NOSTYLE offset written in EngravingItem::writeProperties,
         // so we probably don't need to duplicate it here
         // see https://musescore.org/en/node/286848
         //if (seg->propertyFlags(Pid::OFFSET) & PropertyFlags::UNSTYLED)
-        xml.tag("offset", seg->offset() / _spatium);
-        xml.tag("off2", seg->userOff2() / _spatium);
+        xml.tagPoint("offset", seg->offset() / _spatium);
+        xml.tagPoint("off2", seg->userOff2() / _spatium);
         seg->writeProperty(xml, Pid::MIN_DISTANCE);
         seg->EngravingItem::writeProperties(xml);
-        xml.endObject();
+        xml.endElement();
     }
 }
 
@@ -1437,9 +1437,9 @@ const mu::RectF& SLine::bbox() const
 
 void SLine::write(XmlWriter& xml) const
 {
-    xml.startObject(this);
+    xml.startElement(this);
     SLine::writeProperties(xml);
-    xml.endObject();
+    xml.endElement();
 }
 
 //---------------------------------------------------------
