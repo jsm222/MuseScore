@@ -23,6 +23,8 @@ set(MODULE iex_musicxml)
 set(MODULE_QRC musicxml.qrc)
 
 include(${CMAKE_CURRENT_LIST_DIR}/internal/musicxml/musicxml.cmake)
+find_package(LibXml2 REQUIRED)
+include_directories("${LIBXML2_INCLUDE_DIRS}")
 
 set(MODULE_SRC
     ${MUSICXML_SRC}
@@ -44,14 +46,15 @@ else()
         ${CMAKE_CURRENT_LIST_DIR}/internal/mxlwriter.cpp
         ${CMAKE_CURRENT_LIST_DIR}/internal/mxlwriter.h
         )
+find_package(LibXml2 REQUIRED)
+include_directories("${LIBXML2_INCLUDE_DIRS}")
+add_definitions(-DMUSICXML_CATALOG_FILE="${CMAKE_INSTALL_PREFIX}/${Mscore_SHARE_NAME}${Mscore_INSTALL_NAME}schema/catalog.xml" -DMUSICXML_SCHEMA="${CMAKE_INSTALL_PREFIX}/${Mscore_SHARE_NAME}${Mscore_INSTALL_NAME}schema/musicxml.xsd")
 
-    if (NOT MUE_COMPILE_QT5_COMPAT)
-        set(MODULE_DEF ${MODULE_DEF} -DMUSICXML_NO_VALIDATION)
-    endif()
 endif()
 
 set(MODULE_LINK
     engraving
+    "${LIBXML2_LIBRARIES}"
     )
 
 include(SetupModule)

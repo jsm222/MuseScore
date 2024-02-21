@@ -19,7 +19,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 set(MODULE_TEST iex_musicxml_tests)
-
+find_package(LibXml2 REQUIRED)
+include_directories("${LIBXML2_INCLUDE_DIRS}")
 set(MODULE_TEST_SRC
     ${PROJECT_SOURCE_DIR}/src/engraving/tests/utils/scorerw.cpp
     ${PROJECT_SOURCE_DIR}/src/engraving/tests/utils/scorerw.h
@@ -34,6 +35,7 @@ set(MODULE_TEST_LINK
     engraving
     fonts
     iex_musicxml
+    ${LIBXML2_LIBRARIES}
 )
 
 set(MODULE_TEST_DATA_ROOT ${CMAKE_CURRENT_LIST_DIR})

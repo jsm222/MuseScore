@@ -28,10 +28,13 @@
 #include "engraving/engravingerrors.h"
 
 namespace mu::iex::musicxml {
+#ifdef MUSICXML_NO_VALIDATION
+static QString detailedText;
+#endif
+
 class MusicxmlValidation
 {
 public:
-
     static engraving::Err validate(const String& name, const ByteArray& data);
 };
 }

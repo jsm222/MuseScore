@@ -30,7 +30,7 @@
 #include "io/ifilesystem.h"
 #include "project/iprojectcreator.h"
 #include "project/inotationwritersregister.h"
-
+#include <QFile>
 namespace mu::engraving {
 class Score;
 }
